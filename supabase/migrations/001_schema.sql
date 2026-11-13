@@ -1,4 +1,4 @@
--- Shunlu (顺路) — skema inti
+-- Nusalaju — skema inti
 create type app_role as enum ('superadmin','admin_tiket','admin_cargo');
 create type status_pesanan as enum ('menunggu_bayar','menunggu_verifikasi','lunas','ditolak','kedaluwarsa','batal');
 create type status_cargo as enum ('dibuat','diterima_asal','dalam_perjalanan','tiba_tujuan','siap_diambil','diterima','batal');
@@ -7,8 +7,8 @@ create type status_boarding as enum ('belum','naik','no_show');
 -- Pengaturan umum (satu baris)
 create table settings (
   id int primary key default 1 check (id = 1),
-  nama_brand text not null default 'Shunlu',
-  nama_perusahaan text not null default 'Shunlu',
+  nama_brand text not null default 'Nusalaju',
+  nama_perusahaan text not null default 'Nusalaju',
   warna_brand text not null default '#0F5C4D',
   logo_url text,
   wa_tiket text, wa_cargo text, instagram text, facebook text,

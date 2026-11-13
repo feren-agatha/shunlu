@@ -1,6 +1,6 @@
-# Shunlu 顺路 — tiket bus & cargo
+# Nusalaju — tiket bus & cargo antarkota
 
-Situs customer (`index.html`), back office (`admin.html`), dan prototype desain (`prototype.html`) dalam satu folder statis. Backend dan database ada di Supabase project **shunlu** (region Singapura) yang sudah terisi skema, fungsi, keamanan, dan data awal.
+Situs customer (`index.html`), back office (`admin.html`), dan prototype desain (`prototype.html`) dalam satu folder statis. Backend dan database ada di Supabase project Supabase **shunlu** (region Singapura) yang sudah terisi skema, fungsi, keamanan, dan data awal.
 
 ## 1. Deploy ke Vercel
 
@@ -10,7 +10,7 @@ Buka https://vercel.com/new, import repository ini, Framework Preset **Other**, 
 
 ## 2. Atur URL di Supabase (wajib untuk login back office)
 
-Dashboard Supabase → project **shunlu** → Authentication → URL Configuration:
+Dashboard Supabase → project Supabase **shunlu** → Authentication → URL Configuration:
 - Site URL: `https://<domain-vercel-anda>`
 - Redirect URLs: tambahkan `https://<domain-vercel-anda>/admin.html`
 

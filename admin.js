@@ -1,4 +1,4 @@
-// Shunlu — back office
+// Nusalaju — back office
 const A = { user: null, role: null, profil: null, view: 'dashboard', stopKamera: null };
 const HARI = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 const MENU = [
@@ -262,7 +262,7 @@ async function vScan() {
   $('#kam').onclick = async () => { try { const v = $('#vid'); v.style.display = 'block'; A.stopKamera = await mulaiKamera(v, scan); if (!A.stopKamera) v.style.display = 'none'; } catch (e) { toast('Kamera tidak bisa dibuka: ' + e.message, 'bad'); } };
 }
 function vSerah() {
-  shell('Serah terima', `<section class="card scan-panel phone-ui"><div class="field"><label for="rs">Nomor resi</label><input id="rs" class="input mono" maxlength="12" placeholder="SLC…"></div>
+  shell('Serah terima', `<section class="card scan-panel phone-ui"><div class="field"><label for="rs">Nomor resi</label><input id="rs" class="input mono" maxlength="12" placeholder="NLC…"></div>
     <div class="field"><label for="nm">Nama penerima</label><input id="nm" class="input"></div>
     <div class="field"><label for="ft">Foto barang diterima</label><input id="ft" type="file" accept="image/jpeg,image/png" capture="environment" class="input" style="padding-top:9px"></div>
     <div class="field"><label>Tanda tangan penerima</label><canvas class="sig" id="sig" width="600" height="180" aria-label="Area tanda tangan"></canvas><button class="btn btn-text btn-sm" id="hapus" style="align-self:flex-start">Hapus tanda tangan</button></div>

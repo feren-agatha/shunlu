@@ -1,4 +1,4 @@
--- Fungsi API Shunlu. Semua transaksi lewat fungsi ini; tabel transaksi tidak bisa ditulis langsung.
+-- Fungsi API Nusalaju. Semua transaksi lewat fungsi ini; tabel transaksi tidak bisa ditulis langsung.
 
 create or replace function public.gen_kode(p_len int) returns text
 language sql volatile set search_path = public as $$
@@ -187,7 +187,7 @@ begin
   end if;
 
   loop
-    v_kode := 'SL' || gen_kode(4);
+    v_kode := 'NL' || gen_kode(4);
     exit when not exists (select 1 from pesanan where kode = v_kode);
   end loop;
   v_batas := now() + make_interval(mins => s.batas_bayar_menit);
@@ -410,7 +410,7 @@ begin
   select * into z from zona where asal = p_asal and tujuan = p_tujuan and aktif;
   select * into l from layanan where nama = p_layanan;
   loop
-    v_resi := 'SLC' || to_char(now() at time zone 'Asia/Jakarta', 'YYMMDD') || gen_kode(3);
+    v_resi := 'NLC' || to_char(now() at time zone 'Asia/Jakarta', 'YYMMDD') || gen_kode(3);
     exit when not exists (select 1 from pengiriman where resi = v_resi);
   end loop;
   insert into pengiriman (resi, zona_id, layanan_id, gudang_asal_id, pengirim_nama, pengirim_hp, pengirim_email, pengirim_alamat,
