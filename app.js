@@ -18,7 +18,7 @@ const bersih = () => { timers.forEach(clearInterval); timers = []; if (channel) 
 /* ---------- Kerangka ---------- */
 function layout(inner, opt = {}) {
   const wa = opt.wa || SET.wa_tiket;
-  const teks = encodeURIComponent(opt.waText || 'Halo CS Nusalaju, saya butuh bantuan.');
+  const teks = encodeURIComponent(opt.waText || `Halo CS ${MEREK.nama}, saya butuh bantuan.`);
   return `<header class="c-head"><div class="c-head-in">${logoHtml()}
     <nav class="c-nav" id="cnav" aria-label="Menu utama">
       <a href="#beranda">Beranda</a><a href="#pesanan">Cek Pesanan</a><a href="#ongkir">Cek Ongkir</a><a href="#lacak">Lacak Kiriman</a><a href="#bantuan">Bantuan</a>
@@ -26,7 +26,7 @@ function layout(inner, opt = {}) {
     <button class="c-burger" id="burger" aria-label="Buka menu" aria-expanded="false">${IC.menu}</button>
   </div></header>
   <main class="c-main">${inner}</main>
-  <footer class="c-foot"><div class="c-foot-in"><span>Nusalaju · Tiket bus &amp; cargo antarkota</span><span>Harga tiket sudah termasuk iuran wajib Jasa Raharja</span></div></footer>
+  <footer class="c-foot"><div class="c-foot-in"><span>${esc(MEREK.nama)} · Tiket bus &amp; cargo antarkota</span><span>Harga tiket sudah termasuk iuran wajib Jasa Raharja</span></div></footer>
   ${wa && !opt.noFab ? `<a class="wa-fab no-print" href="https://wa.me/${esc(wa)}?text=${teks}" target="_blank" rel="noopener">${IC.wa}<span class="t">Butuh bantuan? Chat CS</span></a>` : ''}
   ${opt.bottom || ''}`;
 }
@@ -70,7 +70,7 @@ async function vBeranda() {
   tampil(`<section class="hero">
       <div class="hero-top"><div class="stack" style="gap:10px"><span class="badge b-lime" style="align-self:flex-start">Tiket bus &amp; cargo antarkota</span><h1>Laju antarkota, aman sampai.</h1><p>Pilih kursi sendiri, bayar transfer, e-ticket langsung terbit. Cargo ikut bus dan bisa dilacak sampai diterima.</p>
         <div class="hero-stats"><div><b>5</b><span>rute aktif</span></div><div><b>10 mnt</b><span>kursi dikunci untukmu</span></div><div><b>24/7</b><span>lacak resi</span></div></div></div>
-        <div class="hero-bus" aria-hidden="true"><svg viewBox="0 0 420 170" width="100%"><ellipse cx="210" cy="156" rx="190" ry="8" fill="#0E0F11" opacity=".08"/><path d="M18 40q0-22 22-22h318q30 0 40 28l10 34v52q0 14-14 14H32q-14 0-14-14z" fill="#fff" stroke="#D5D9DE" stroke-width="2"/><rect x="34" y="34" width="250" height="44" rx="8" fill="#1F2226"/><g fill="#2E3238">${[0,1,2,3,4].map(i=>`<rect x="${40+i*49}" y="40" width="42" height="32" rx="4"/>`).join('')}</g><path d="M300 34h56q16 0 22 14l12 30H300z" fill="#1F2226"/><rect x="18" y="96" width="400" height="8" fill="#7A2BF0"/><rect x="18" y="108" width="400" height="3" fill="#C9F45E"/><text x="40" y="128" font-family="Urbanist,sans-serif" font-size="15" font-weight="600" fill="#0E0F11">Nusalaju</text><g><circle cx="96" cy="146" r="17" fill="#1F2226"/><circle cx="96" cy="146" r="7" fill="#C9CDD3"/><circle cx="334" cy="146" r="17" fill="#1F2226"/><circle cx="334" cy="146" r="7" fill="#C9CDD3"/></g><rect x="398" y="84" width="14" height="8" rx="3" fill="#C9F45E"/></svg></div></div>
+        <div class="hero-bus" aria-hidden="true"><svg viewBox="0 0 420 170" width="100%"><ellipse cx="210" cy="156" rx="190" ry="8" fill="#0E0F11" opacity=".08"/><path d="M18 40q0-22 22-22h318q30 0 40 28l10 34v52q0 14-14 14H32q-14 0-14-14z" fill="#fff" stroke="#D5D9DE" stroke-width="2"/><rect x="34" y="34" width="250" height="44" rx="8" fill="#1F2226"/><g fill="#2E3238">${[0,1,2,3,4].map(i=>`<rect x="${40+i*49}" y="40" width="42" height="32" rx="4"/>`).join('')}</g><path d="M300 34h56q16 0 22 14l12 30H300z" fill="#1F2226"/><rect x="18" y="96" width="400" height="8" fill="#7A2BF0"/><rect x="18" y="108" width="400" height="3" fill="#C9F45E"/><text x="40" y="128" font-family="Urbanist,sans-serif" font-size="15" font-weight="600" fill="#0E0F11">${esc(MEREK.nama)}</text><g><circle cx="96" cy="146" r="17" fill="#1F2226"/><circle cx="96" cy="146" r="7" fill="#C9CDD3"/><circle cx="334" cy="146" r="17" fill="#1F2226"/><circle cx="334" cy="146" r="7" fill="#C9CDD3"/></g><rect x="398" y="84" width="14" height="8" rx="3" fill="#C9F45E"/></svg></div></div>
       <div class="search-card"><div class="tabs" role="tablist"><button role="tab" id="t-tiket" aria-selected="${S.tab === 'tiket'}">Tiket Bus</button><button role="tab" id="t-cargo" aria-selected="${S.tab === 'cargo'}">Cargo</button></div>${S.tab === 'tiket' ? tiket : cargo}</div>
     </section>
     <div class="feat">
@@ -81,7 +81,7 @@ async function vBeranda() {
     </div>
     ${promos.length ? `<h2 class="sec-title">Promo berjalan</h2><div class="promo-grid">${promos.map((p, i) => `<div class="card promo"><div class="art" style="background:linear-gradient(120deg,${['#0F5C4D,#1F8A73', '#8A2A1E,#B3261E', '#7A5300,#E3A82B'][i % 3]})">${esc(p.judul)}</div><div class="body"><b>${esc(p.ringkas || '')}</b><p>${esc(p.isi || '')}</p></div></div>`).join('')}</div>` : ''}
     ${avg ? `<h2 class="sec-title">Kata penumpang</h2><div class="card" style="padding:18px 20px"><span class="num" style="font-size:32px;font-weight:700">${avg}</span><span class="muted"> / 5 dari ${r.length} rating</span></div>` : ''}`,
-    { waText: 'Halo CS Nusalaju, saya mau tanya jadwal dan tiket.' });
+    { waText: `Halo CS ${MEREK.nama}, saya mau tanya jadwal dan tiket.` });
   $('#t-tiket').onclick = () => { S.tab = 'tiket'; simpan(); vBeranda(); };
   $('#t-cargo').onclick = () => { S.tab = 'cargo'; simpan(); vBeranda(); };
   const f = $('#f-cari');
@@ -292,7 +292,7 @@ async function vBayar() {
   let p; try { p = await muatPesanan(); } catch (e) { p = null; }
   if (!p) { tampil(kosong('Pesanan tidak ditemukan.', 'Periksa kode booking dan email.', '<a class="btn btn-secondary" href="#pesanan">Cek pesanan</a>')); return; }
   if (p.status === 'lunas') { location.hash = 'eticket'; return; }
-  const wa = `Halo CS Nusalaju, saya butuh bantuan untuk kode booking ${p.kode}.`;
+  const wa = `Halo CS ${MEREK.nama}, saya butuh bantuan untuk kode booking ${p.kode}.`;
   const ringkas = `<div class="kv"><span>Kode booking</span><b class="mono">${p.kode}</b></div><div class="kv"><span>Jadwal</span><b>${tglPendek(p.tanggal)} · ${jam(p.jam)}</b></div><div class="kv"><span>Rute</span><b>${esc(p.rute)}</b></div><div class="kv"><span>Kursi</span><b>${p.kursi.map(k => k.kursi).join(', ')}</b></div>`;
   if (p.status === 'menunggu_verifikasi') {
     tampil(`${progress(4)}<div class="card status-hero" style="max-width:640px;margin:0 auto"><span class="badge b-warn">Menunggu verifikasi</span><h2>Bukti terkirim.</h2><p style="margin:0;color:var(--ink-2)">Kursi Anda aman sampai pembayaran dicek, biasanya kurang dari 15 menit di jam operasional. Halaman ini diperbarui otomatis.</p>${ringkas}<div class="kv" style="width:100%"><span>Nominal</span><b class="num">${rp(p.total_transfer)}</b></div></div>`, { waText: wa });
@@ -357,7 +357,7 @@ async function vEticket() {
       <p class="hint" style="margin:0">Harga sudah termasuk iuran wajib Jasa Raharja. Datang 30 menit sebelum berangkat.</p></div>
       <div class="qr"><div class="qrbox" id="qr" role="img" aria-label="QR boarding ${p.kode}"></div><span class="hint mono">${p.kode}</span>
         <button class="btn btn-primary btn-sm btn-block no-print" onclick="window.print()">Cetak / simpan PDF</button></div></article>`,
-    { waText: `Halo CS Nusalaju, saya butuh bantuan untuk kode booking ${p.kode}.` });
+    { waText: `Halo CS ${MEREK.nama}, saya butuh bantuan untuk kode booking ${p.kode}.` });
   renderQR($('#qr'), p.qr || p.kode);
 }
 function vCekPesanan() {
@@ -391,7 +391,7 @@ async function vOngkir() {
       <label class="switch"><input type="checkbox" id="ins" ${S.asuransi ? 'checked' : ''}> Asuransi barang</label>
       <div class="field" id="nilai-f" ${S.asuransi ? '' : 'hidden'}><label for="nilai">Nilai barang (Rp)</label><input id="nilai" class="input num" type="number" min="0" step="50000" value="${S.nilai || ''}"></div>
     </section>
-    <aside class="card calc-res" id="hasil" aria-live="polite"><div class="skeleton" style="height:200px"></div></aside></div>`, { wa: SET.wa_cargo, waText: 'Halo CS Nusalaju, saya mau tanya pengiriman cargo.' });
+    <aside class="card calc-res" id="hasil" aria-live="polite"><div class="skeleton" style="height:200px"></div></aside></div>`, { wa: SET.wa_cargo, waText: `Halo CS ${MEREK.nama}, saya mau tanya pengiriman cargo.` });
   let t = null;
   const hitung = () => { clearTimeout(t); t = setTimeout(async () => {
     simpan();
@@ -448,11 +448,11 @@ function vKirim() {
 }
 function vResi() {
   const r = S.resiBaru; if (!r) { location.hash = 'lacak'; return; }
-  const link = location.origin + location.pathname + '#lacak';
+  const link = location.origin + location.pathname + '?po=' + MEREK.slug + '#lacak';
   tampil(`<div class="card resi-box" style="max-width:640px;margin:0 auto"><span class="badge b-ok">Pengiriman dibuat</span><span class="hint">Nomor resi</span><div class="resi-no">${r.resi}</div><svg id="bc" role="img" aria-label="Barcode ${r.resi}"></svg>
     <div class="stack" style="width:100%;text-align:left;gap:8px"><div class="kv"><span>Rute</span><b>${esc(S.cAsal)} → ${esc(S.cTujuan)}</b></div><div class="kv"><span>Koli</span><b>${r.koli} koli · ${esc(S.layanan)}</b></div><div class="kv"><span>Estimasi ongkir</span><b class="num">${rp(r.estimasi_ongkir)}</b></div>${r.gudang ? `<div class="kv"><span>Serahkan barang di</span><b>${esc(r.gudang.nama)} · ${esc(r.gudang.jam)}</b></div>` : ''}</div>
     <div class="banner info" style="text-align:left"><div>Bayar ongkir final di loket gudang setelah barang ditimbang. Bawa resi ini atau sebutkan nomornya.</div></div>
-    <div class="row no-print" style="justify-content:center"><button class="btn btn-primary" onclick="window.print()">Cetak resi</button><button class="btn btn-secondary" id="cl">Salin nomor resi</button><a class="btn btn-secondary" href="https://wa.me/?text=${encodeURIComponent('Lacak kiriman Nusalaju ' + r.resi + ': ' + link)}" target="_blank" rel="noopener">Bagikan ke WhatsApp</a></div></div>`, { wa: SET.wa_cargo });
+    <div class="row no-print" style="justify-content:center"><button class="btn btn-primary" onclick="window.print()">Cetak resi</button><button class="btn btn-secondary" id="cl">Salin nomor resi</button><a class="btn btn-secondary" href="https://wa.me/?text=${encodeURIComponent('Lacak kiriman ' + MEREK.nama + ' ' + r.resi + ': ' + link)}" target="_blank" rel="noopener">Bagikan ke WhatsApp</a></div></div>`, { wa: SET.wa_cargo });
   renderBarcode($('#bc'), r.resi);
   $('#cl').onclick = () => copyText(r.resi, 'Nomor resi');
 }
@@ -461,7 +461,7 @@ async function vLacak() {
   const form = `<form id="f-l" class="row" style="max-width:640px;margin:0 auto 20px;flex-wrap:nowrap"><label class="sr" for="lr">Nomor resi</label><input id="lr" class="input mono" maxlength="12" placeholder="NLC261113A7K" value="${esc(S.resi || '')}"><button class="btn btn-primary">Lacak</button></form>`;
   let r = null;
   if (S.resi) { try { r = await rpc('lacak_resi', { p_resi: S.resi }); } catch (e) {} }
-  const body = !S.resi ? '' : !r ? `<div class="card empty" style="max-width:640px;margin:0 auto"><h3>Nomor resi tidak ditemukan.</h3><p>Periksa kembali 12 karakter pada resi Anda. Resi Nusalaju diawali NLC.</p></div>` :
+  const body = !S.resi ? '' : !r ? `<div class="card empty" style="max-width:640px;margin:0 auto"><h3>Nomor resi tidak ditemukan.</h3><p>Periksa kembali 12 karakter pada resi Anda. Nomor resi diawali NLC.</p></div>` :
     `<div class="card" style="max-width:640px;margin:0 auto;padding:20px 24px;display:flex;flex-direction:column;gap:18px">
       <div class="spread"><div><span class="hint">Resi</span><div class="mono" style="font-size:20px;font-weight:600">${r.resi}</div></div><span class="badge ${r.status === 'diterima' ? 'b-ok' : 'b-info'}">${LABEL[r.status]}</span></div>
       <div class="t-meta"><div><span>Rute</span><b>${esc(r.asal)} → ${esc(r.tujuan)}</b></div><div><span>Layanan</span><b>${esc(r.layanan)} · ${r.koli} koli</b></div><div><span>Estimasi tiba</span><b>${r.estimasi_tiba ? tglPendek(r.estimasi_tiba) : '—'}</b></div></div>
@@ -484,13 +484,17 @@ async function route() {
   try { await (RUTE[h] || vBeranda)(); } catch (e) { console.error(e); tampil(kosong('Halaman gagal dimuat.', esc(pesanGalat(e)), '<a class="btn btn-secondary" href="#beranda">Ke beranda</a>')); }
 }
 (async function init() {
+  let q = new URLSearchParams(location.search).get('po');
+  try { if (q) localStorage.setItem('nl-po', q.toLowerCase()); else q = localStorage.getItem('nl-po'); } catch (e) { }
+  const { data: tn } = await sb.rpc('tenant_info', { p_slug: q || null, p_host: location.hostname });
+  pakaiTenant((tn && tn.slug) || 'nusalaju');
   const [st, rt, zn, ly] = await Promise.all([
-    sb.from('settings').select('*').eq('id', 1).maybeSingle(),
+    sb.from('settings').select('*').maybeSingle(),
     sb.from('rute').select('asal,tujuan').eq('aktif', true),
     sb.from('zona').select('asal,tujuan').eq('aktif', true),
     sb.from('layanan').select('nama,janji').eq('aktif', true)
   ]);
-  if (st.data) SET = st.data;
+  if (st.data) { SET = st.data; pakaiMerek(SET); document.title = `${MEREK.nama} · Tiket Bus & Cargo`; }
   KOTA = [...new Set((rt.data || []).flatMap(r => [r.asal, r.tujuan]))].sort();
   KOTA_CARGO = { asal: [...new Set((zn.data || []).map(z => z.asal))].sort(), tujuan: [...new Set((zn.data || []).map(z => z.tujuan))].sort() };
   LAYANAN = ly.data || [];

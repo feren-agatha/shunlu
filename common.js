@@ -4,9 +4,19 @@ window.SHUNLU_CONFIG = window.SHUNLU_CONFIG || {
   // Kunci publik (anon). Aman ditaruh di browser; akses dibatasi RLS dan fungsi di database.
   key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhucnlmb2tsam9mYXduZmdlZGlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ0OTk4MjAsImV4cCI6MjExMDA3NTgyMH0.jPy8OmD52XhD8eLRmsbo0DmlgzhE-lshNOpsk4gWFHU'
 };
+const DI_ADMIN = /admin/.test(location.pathname);
+// Situs customer tidak pernah login dan memakai sesi terpisah, supaya header tenant (x-tenant) yang menentukan PO.
 const sb = window.supabase.createClient(SHUNLU_CONFIG.url, SHUNLU_CONFIG.key, {
-  auth: { persistSession: true, storageKey: 'nusalaju-auth' }
+  auth: DI_ADMIN ? { persistSession: true, storageKey: 'nusalaju-auth' } : { persistSession: false, autoRefreshToken: false, storageKey: 'nusalaju-pelanggan' }
 });
+// Merek tenant aktif (diisi dari settings tenant)
+const MEREK = { nama: 'Nusalaju', logo: null, slug: 'nusalaju' };
+function pakaiTenant(slug) { sb.rest.headers['x-tenant'] = slug; MEREK.slug = slug; }
+function pakaiMerek(set) {
+  if (!set) return;
+  MEREK.nama = set.nama_brand || MEREK.nama; MEREK.logo = set.logo_url || null;
+  if (set.warna_brand && /^#[0-9a-f]{6}$/i.test(set.warna_brand)) document.documentElement.style.setProperty('--accent', set.warna_brand);
+}
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -22,6 +32,7 @@ const isoHari = (d, plus = 0) => { const x = new Date(d + 'T00:00:00'); x.setDat
 const hariIni = () => { const x = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' })); return x.getFullYear() + '-' + pad(x.getMonth() + 1) + '-' + pad(x.getDate()); };
 
 const PESAN_GALAT = {
+  slug_sudah_dipakai: 'Slug sudah dipakai PO lain.', slug_tidak_valid: 'Slug hanya huruf kecil, angka, dan tanda minus (2–30 karakter).', tenant_tidak_ada: 'Tenant tidak ditemukan.', hak_akses_beda_tenant: 'Hak akses itu bukan milik PO ini.', nama_wajib: 'Nama wajib diisi.',
   kursi_diambil: 'Kursi ini baru saja dipilih penumpang lain. Silakan pilih kursi lain.',
   maks_kursi: 'Maksimal kursi per pesanan sudah tercapai.',
   jadwal_ditutup: 'Penjualan online untuk jadwal ini sudah ditutup.',
@@ -96,7 +107,7 @@ function unduh(nama, isi, tipe = 'text/csv') {
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([isi], { type: tipe })); a.download = nama; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
-const logoHtml = (href = 'index.html') => `<a class="logo" href="${href}" aria-label="Nusalaju"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 18.5V5.5l12 13V5.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 9.2l7 7.6" stroke="#C9F45E" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="1.6 2.4"/></svg></span>Nusalaju</a>`;
+const logoHtml = (href = 'index.html') => `<a class="logo" href="${href}" aria-label="${esc(MEREK.nama)}">${MEREK.logo ? `<img class="logo-img" src="${esc(MEREK.logo)}" alt="" width="36" height="36">` : `<span class="logo-mark" aria-hidden="true">${MEREK.slug === 'nusalaju' ? '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 18.5V5.5l12 13V5.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 9.2l7 7.6" stroke="#C9F45E" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="1.6 2.4"/></svg>' : `<b style="color:#fff;font-size:17px">${esc(MEREK.nama.trim()[0] || '?').toUpperCase()}</b>`}</span>`}${esc(MEREK.nama)}</a>`;
 const IC = {
   swap: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 4v16M4 7l3-3 3 3M17 20V4M14 17l3 3 3-3"/></svg>',
   wa: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12a9 9 0 0 1-13.4 7.8L3 21l1.3-4.4A9 9 0 1 1 21 12z"/></svg>',
