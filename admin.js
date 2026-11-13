@@ -2,23 +2,23 @@
 const A = { user: null, role: null, profil: null, view: 'dashboard', stopKamera: null };
 const HARI = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 const MENU = [
-  { id: 'dashboard', label: 'Dashboard', roles: ['superadmin', 'admin_tiket', 'admin_cargo'] },
-  { grup: 'Ticketing', roles: ['superadmin', 'admin_tiket'] },
-  { id: 'verifikasi', label: 'Verifikasi pembayaran', roles: ['superadmin', 'admin_tiket'] },
-  { id: 'rekonsiliasi', label: 'Rekonsiliasi mutasi', roles: ['superadmin', 'admin_tiket'] },
-  { id: 'manifest', label: 'Manifest & boarding', roles: ['superadmin', 'admin_tiket'] },
-  { grup: 'Cargo', roles: ['superadmin', 'admin_cargo'] },
-  { id: 'terima', label: 'Terima barang', roles: ['superadmin', 'admin_cargo'] },
-  { id: 'scan', label: 'Scan status koli', roles: ['superadmin', 'admin_cargo'] },
-  { id: 'serah', label: 'Serah terima', roles: ['superadmin', 'admin_cargo'] },
-  { grup: 'Master data', roles: ['superadmin'] },
-  { id: 'm-tiket', label: 'Master Ticketing', roles: ['superadmin'] },
-  { id: 'm-cargo', label: 'Master Cargo', roles: ['superadmin'] },
-  { id: 'layout', label: 'Layout kursi', roles: ['superadmin'] },
-  { id: 'laporan', label: 'Laporan', roles: ['superadmin', 'admin_tiket', 'admin_cargo'] },
-  { grup: 'Pengaturan', roles: ['superadmin'] },
-  { id: 'pengaturan', label: 'Pengaturan umum', roles: ['superadmin'] },
-  { id: 'konten', label: 'CMS konten', roles: ['superadmin'] },
+  { id: 'dashboard', label: 'Dashboard', roles: ['superadmin', 'demo', 'admin_tiket', 'admin_cargo'] },
+  { grup: 'Ticketing', roles: ['superadmin', 'demo', 'admin_tiket'] },
+  { id: 'verifikasi', label: 'Verifikasi pembayaran', roles: ['superadmin', 'demo', 'admin_tiket'] },
+  { id: 'rekonsiliasi', label: 'Rekonsiliasi mutasi', roles: ['superadmin', 'demo', 'admin_tiket'] },
+  { id: 'manifest', label: 'Manifest & boarding', roles: ['superadmin', 'demo', 'admin_tiket'] },
+  { grup: 'Cargo', roles: ['superadmin', 'demo', 'admin_cargo'] },
+  { id: 'terima', label: 'Terima barang', roles: ['superadmin', 'demo', 'admin_cargo'] },
+  { id: 'scan', label: 'Scan status koli', roles: ['superadmin', 'demo', 'admin_cargo'] },
+  { id: 'serah', label: 'Serah terima', roles: ['superadmin', 'demo', 'admin_cargo'] },
+  { grup: 'Master data', roles: ['superadmin', 'demo'] },
+  { id: 'm-tiket', label: 'Master Ticketing', roles: ['superadmin', 'demo'] },
+  { id: 'm-cargo', label: 'Master Cargo', roles: ['superadmin', 'demo'] },
+  { id: 'layout', label: 'Layout kursi', roles: ['superadmin', 'demo'] },
+  { id: 'laporan', label: 'Laporan', roles: ['superadmin', 'demo', 'admin_tiket', 'admin_cargo'] },
+  { grup: 'Pengaturan', roles: ['superadmin', 'demo'] },
+  { id: 'pengaturan', label: 'Pengaturan umum', roles: ['superadmin', 'demo'] },
+  { id: 'konten', label: 'CMS konten', roles: ['superadmin', 'demo'] },
   { id: 'user', label: 'User & hak akses', roles: ['superadmin'] },
   { id: 'log', label: 'Log aktivitas', roles: ['superadmin'] }
 ];
@@ -28,8 +28,8 @@ function shell(judul, inner) {
   $('#app').innerHTML = `<div class="a-wrap"><nav class="a-side no-print" aria-label="Menu back office">${logoHtml('admin.html')}
     ${MENU.filter(m => m.roles.includes(A.role)).map(m => m.grup ? `<h5>${m.grup}</h5>` : `<a href="#${m.id}" class="${A.view === m.id ? 'on' : ''}">${m.label}${m.id === 'verifikasi' ? '<span class="cnt" id="cnt-v" hidden></span>' : ''}</a>`).join('')}
     <a href="#keluar" style="margin-top:auto">Keluar</a></nav>
-    <div class="a-main"><div class="a-top no-print"><h1>${esc(judul)}</h1><span class="muted" style="font-size:13px">${esc(A.profil.nama || '')} · ${({ superadmin: 'Superadmin', admin_tiket: 'Admin Ticketing', admin_cargo: 'Admin Cargo' })[A.role]}</span></div>
-    <div class="a-content" id="isi">${inner}</div></div></div>`;
+    <div class="a-main"><div class="a-top no-print"><h1>${esc(judul)}</h1><span class="muted" style="font-size:13px">${esc(A.profil.nama || '')} · ${({ superadmin: 'Superadmin', admin_tiket: 'Admin Ticketing', admin_cargo: 'Admin Cargo', demo: 'Akun demo' })[A.role]}</span></div>
+    <div class="a-content">${A.role === 'demo' ? '<div class="banner info no-print"><div><b>Akun demo.</b> Anda bisa mencoba verifikasi, rekonsiliasi, boarding, dan cargo. Master data, harga, dan pengaturan hanya bisa dilihat.</div></div>' : ''}<div id="isi" class="stack" style="gap:20px">${inner}</div></div></div></div>`;
   if (boleh('verifikasi')) sb.rpc('daftar_verifikasi').then(({ data }) => { const c = $('#cnt-v'); if (c && data && data.length) { c.textContent = data.length; c.hidden = false; } });
 }
 const kosong = (j, i) => `<div class="card empty"><h3>${j}</h3><p>${i}</p></div>`;
@@ -369,6 +369,7 @@ function drawer(key, row, ulang) {
     close(); delete FKCACHE[key]; toast('Data dihapus.'); ulang();
   };
   $('#s', bg).onclick = async () => {
+    if (A.role === 'demo') { toast('Akun demo hanya bisa melihat. Perubahan tidak disimpan.'); return; }
     const data = {}; let ok = true;
     m.fields.filter(f => !f.ro).forEach(f => { const v = ambil(f, bg); const bad = !f.opt && f.type !== 'bool' && (v == null || (Array.isArray(v) && !v.length && f.type !== 'titik')); $('#e-' + f.k, bg).hidden = !bad; if (bad) ok = false; data[f.k] = v; });
     if (!ok) return;
@@ -414,6 +415,7 @@ async function vLayout() {
   $('#addr').onclick = () => { A.grid.push(A.grid[A.grid.length - 1].map(c => c === 'p' || c === 's' ? 'k' : c)); vLayout(); };
   $('#delr').onclick = () => { if (A.grid.length > 2) { A.grid.pop(); vLayout(); } };
   $('#sv').onclick = async () => {
+    if (A.role === 'demo') { toast('Akun demo hanya bisa melihat. Perubahan tidak disimpan.'); return; }
     const nama = $('#ln').value.trim(); if (!nama) { toast('Isi nama layout.', 'bad'); return; }
     let baris = 0; const kursi = [];
     A.grid.forEach((row, r) => { const seats = row.map((c, ci) => [c, ci]).filter(([c]) => c === 'k' || c === 'kv'); if (!seats.length) return; baris = r; seats.forEach(([c, ci], i) => kursi.push({ no: r + String.fromCharCode(65 + i), kelas: c === 'kv' ? 'VIP' : 'Eksekutif', baris: r, kolom: ci })); });
@@ -464,6 +466,7 @@ async function vPengaturan() {
       <label class="switch"><input type="checkbox" id="g-kode_unik" ${s.kode_unik ? 'checked' : ''}> Kode unik 3 digit di nominal transfer</label>${f('sla_verifikasi_menit', 'Peringatan verifikasi lebih dari (menit)', 'number')}
       <button class="btn btn-primary" id="sv">Simpan pengaturan</button></section></div>`);
   $('#sv').onclick = async () => {
+    if (A.role === 'demo') { toast('Akun demo hanya bisa melihat. Perubahan tidak disimpan.'); return; }
     const d = {}; ['nama_brand', 'nama_perusahaan', 'wa_tiket', 'wa_cargo', 'instagram', 'facebook'].forEach(k => d[k] = $('#g-' + k).value.trim() || null);
     ['kunci_kursi_menit', 'batas_bayar_menit', 'tutup_jual_jam', 'maks_kursi', 'maks_hari_kedepan', 'sla_verifikasi_menit'].forEach(k => d[k] = +$('#g-' + k).value);
     d.kode_unik = $('#g-kode_unik').checked; d.updated_at = new Date().toISOString();
@@ -475,7 +478,7 @@ async function vUser() {
   const [{ data: us }, { data: br }] = await Promise.all([sb.from('profiles').select('*').order('created_at'), sb.from('branch').select('id,nama,kota').order('nama')]);
   shell('User & hak akses', `<div class="banner info"><div>User baru mendaftar sendiri lewat halaman masuk back office (Daftar akun staf), lalu Superadmin memberi peran dan branch di sini. Admin hanya melihat data branch-nya; Superadmin melihat semua.</div></div>
     <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Nama</th><th>Email</th><th>Peran</th><th>Branch</th><th>Aktif</th><th></th></tr></thead><tbody>
-    ${us.map(u => `<tr data-u="${u.id}"><td>${esc(u.nama || '')}</td><td>${esc(u.email || '')}</td><td><select class="select" style="height:36px" data-f="role" ${u.id === A.user.id ? 'disabled' : ''}><option value="">Belum ada akses</option>${['superadmin', 'admin_tiket', 'admin_cargo'].map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${({ superadmin: 'Superadmin', admin_tiket: 'Admin Ticketing', admin_cargo: 'Admin Cargo' })[r]}</option>`).join('')}</select></td>
+    ${us.map(u => `<tr data-u="${u.id}"><td>${esc(u.nama || '')}</td><td>${esc(u.email || '')}</td><td><select class="select" style="height:36px" data-f="role" ${u.id === A.user.id ? 'disabled' : ''}><option value="">Belum ada akses</option>${['superadmin', 'admin_tiket', 'admin_cargo', 'demo'].map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${({ superadmin: 'Superadmin', admin_tiket: 'Admin Ticketing', admin_cargo: 'Admin Cargo', demo: 'Akun demo' })[r]}</option>`).join('')}</select></td>
       <td><div class="daychips">${br.map(b => `<label><input type="checkbox" value="${b.id}" ${(u.branch_ids || []).includes(b.id) ? 'checked' : ''}> ${esc(b.nama)}</label>`).join('')}</div></td>
       <td><label class="switch"><input type="checkbox" data-f="aktif" ${u.aktif ? 'checked' : ''} ${u.id === A.user.id ? 'disabled' : ''} aria-label="Aktif"></label></td><td><button class="btn btn-primary btn-sm" data-save>Simpan</button></td></tr>`).join('')}</tbody></table></div>`);
   $$('[data-save]').forEach(b => b.onclick = async () => {
