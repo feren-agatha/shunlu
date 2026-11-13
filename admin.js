@@ -12,9 +12,7 @@ const MENU = [
   { id: 'scan', label: 'Scan status koli', izin: ['scan'] },
   { id: 'serah', label: 'Serah terima', izin: ['serah'] },
   { grup: 'Master data' },
-  { id: 'm-tiket', label: 'Master Ticketing', izin: ['master_lihat', 'master_ubah'] },
-  { id: 'm-cargo', label: 'Master Cargo', izin: ['master_lihat', 'master_ubah'] },
-  { id: 'layout', label: 'Layout kursi', izin: ['master_lihat', 'master_ubah'] },
+  { id: 'master', label: 'Data master', izin: ['master_lihat', 'master_ubah'] },
   { id: 'laporan', label: 'Laporan', izin: ['laporan'] },
   { grup: 'Pengaturan' },
   { id: 'pengaturan', label: 'Pengaturan umum', izin: ['pengaturan_lihat', 'pengaturan_ubah'] },
@@ -84,11 +82,13 @@ async function route() {
   closeModal();
   if (!A.user) { vLogin(); return; }
   const h = location.hash.slice(1) || 'dashboard';
+  const ALIAS = { 'm-tiket': 'jadwal', 'm-cargo': 'zona', layout: 'layout' };
+  if (ALIAS[h]) { A.mSel = ALIAS[h]; location.replace('#master'); return; }
   if (h === 'keluar') { window.onhashchange = null; await sb.auth.signOut(); A.user = null; A.izin = new Set(); A.platform = false; history.replaceState(null, '', location.pathname + location.search); vLogin(); return; }
   A.view = h;
   if (!boleh(h)) { shell('Akses ditolak', `<div class="card denied"><span style="color:var(--ink-3)">${IC.lock}</span><h2 style="font-size:18px">Anda tidak punya akses ke halaman ini.</h2><p class="muted" style="margin:0">Hubungi Superadmin bila butuh akses.</p><a class="btn btn-secondary" href="#dashboard">Kembali ke Dashboard</a></div>`); return; }
   const V = { dashboard: vDashboard, verifikasi: vVerifikasi, rekonsiliasi: vRekon, manifest: vManifest, terima: vTerima, scan: vScan, serah: vSerah,
-    'm-tiket': () => vMaster('tiket'), 'm-cargo': () => vMaster('cargo'), layout: vLayout, laporan: vLaporan, pengaturan: vPengaturan, konten: () => vMasterTunggal('konten', 'CMS konten'), user: vUser, log: vLog, tenant: vTenant };
+    master: vMaster, laporan: vLaporan, pengaturan: vPengaturan, konten: () => vMasterTunggal('konten', 'CMS konten'), user: vUser, log: vLog, tenant: vTenant };
   try { await V[h](); } catch (e) { console.error(e); shell('Galat', kosong('Halaman gagal dimuat.', esc(pesanGalat(e)))); }
 }
 
@@ -101,12 +101,12 @@ const IKON_GRUP = {
   Laporan: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
   Pengaturan: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'
 };
-const GRUPNAV = [['Dashboard', ['dashboard']], ['Ticketing', ['verifikasi', 'rekonsiliasi', 'manifest']], ['Cargo', ['terima', 'scan', 'serah']], ['Master', ['m-tiket', 'm-cargo', 'layout']], ['Laporan', ['laporan']], ['Pengaturan', ['pengaturan', 'konten', 'user', 'log', 'tenant']]];
+const GRUPNAV = [['Dashboard', ['dashboard']], ['Ticketing', ['verifikasi', 'rekonsiliasi', 'manifest']], ['Cargo', ['terima', 'scan', 'serah']], ['Master', ['master']], ['Laporan', ['laporan']], ['Pengaturan', ['pengaturan', 'konten', 'user', 'log', 'tenant']]];
 const SUB = {
   dashboard: 'Penjualan, keberangkatan armada, dan peringatan hari ini', verifikasi: 'Cocokkan bukti transfer dengan mutasi, lalu setujui atau tolak',
   rekonsiliasi: 'Unggah mutasi rekening untuk mencocokkan pembayaran sekaligus', manifest: 'Daftar penumpang per keberangkatan dan scan boarding',
   terima: 'Timbang ulang barang, terima pembayaran, dan cetak label koli', scan: 'Ubah status koli dengan scan beruntun', serah: 'Foto atau tanda tangan penerima untuk menyelesaikan pengiriman',
-  'm-tiket': 'Jadwal, harga, aturan harga, promo, rute, armada, driver, branch, rekening', 'm-cargo': 'Tarif, zona, gudang, layanan, dan asuransi', layout: 'Susunan kursi per tipe armada',
+  master: 'Data yang perlu disiapkan sebelum tiket dan cargo bisa dijual',
   laporan: 'Rekap tiket dan cargo per periode', pengaturan: 'Identitas, kontak, dan aturan penjualan', konten: 'Promo, berita, FAQ, dan halaman situs',
   user: 'Tambah user, atur hak akses, dan reset password', log: 'Jejak aksi admin untuk audit', tenant: 'PO bus yang memakai platform, situs, dan domainnya'
 };
@@ -462,13 +462,78 @@ function drawer(key, row, ulang) {
     close(); delete FKCACHE[key]; toast(`${m.label} tersimpan.`, 'ok'); ulang();
   };
 }
-async function vMaster(grup) {
-  A.mt = A.mt || {}; A.mt[grup] = A.mt[grup] || GRUP[grup][0]; const cur = A.mt[grup];
-  shell(grup === 'tiket' ? 'Master Ticketing' : 'Master Cargo', '<div class="skeleton" style="height:300px"></div>');
-  const tabs = `<div class="a-tabs" role="tablist">${GRUP[grup].map(k => `<button role="tab" data-t="${k}" aria-selected="${k === cur}">${MASTER[k].label}</button>`).join('')}</div>`;
-  $('#isi').innerHTML = hanyaLihat(izinUbah(cur), 'Hak akses Anda tidak bisa mengubah data ini.') + tabs + await tabelMaster(cur);
-  $$('[data-t]').forEach(b => b.onclick = () => { A.mt[grup] = b.dataset.t; vMaster(grup); });
-  bindMaster(cur, () => vMaster(grup));
+/* ---------- Data master: disusun mengikuti urutan persiapan ---------- */
+// Urutan langkah = urutan data harus ada sebelum tiket/cargo bisa dijual. `butuh` = data yang wajib ada lebih dulu.
+const LANGKAH = {
+  tiket: { judul: 'Ticketing', tujuan: 'jual tiket', item: [
+    { k: 'branch', label: 'Branch & pool', desk: 'Tempat penumpang naik dan loket. Dipakai sebagai titik naik dan cakupan staf.' },
+    { k: 'rute', label: 'Rute', desk: 'Pasangan kota asal dan tujuan, jarak, dan lama perjalanan.' },
+    { k: 'layout', tabel: 'layout_kursi', label: 'Layout kursi', desk: 'Susunan kursi per tipe bus. Satu layout bisa dipakai banyak armada.' },
+    { k: 'armada', label: 'Armada', desk: 'Bus yang beroperasi, beserta layout kursi dan kapasitas bagasi cargo.', butuh: ['layout'] },
+    { k: 'driver', label: 'Driver', desk: 'Pengemudi yang bisa ditugaskan ke jadwal.', opsional: true },
+    { k: 'jadwal', label: 'Jadwal & harga', desk: 'Jam berangkat per rute, armada yang dipakai, harga dasar, serta titik naik dan turun.', butuh: ['rute', 'armada'] },
+    { k: 'rekening', label: 'Rekening', desk: 'Rekening tujuan transfer yang tampil ke customer saat membayar.' },
+    { k: 'aturan_harga', label: 'Aturan harga', desk: 'Penyesuaian harga untuk musim ramai, akhir pekan, atau hari sepi.', opsional: true, butuh: ['jadwal'] },
+    { k: 'promo', label: 'Promo', desk: 'Kode potongan harga yang bisa dipakai customer.', opsional: true, butuh: ['jadwal'] }
+  ] },
+  cargo: { judul: 'Cargo', tujuan: 'terima cargo', item: [
+    { k: 'zona', label: 'Zona', desk: 'Pasangan kota asal dan tujuan kiriman beserta estimasi lama kirim.' },
+    { k: 'layanan', label: 'Layanan', desk: 'Jenis layanan kirim, misalnya Reguler atau Kilat.' },
+    { k: 'tarif', label: 'Tarif', desk: 'Harga per kg untuk setiap zona dan layanan, termasuk minimum biaya.', butuh: ['zona', 'layanan'] },
+    { k: 'gudang', label: 'Gudang', desk: 'Tempat customer menyerahkan barang dan staf menimbang ulang.', butuh: ['branch'] },
+    { k: 'asuransi', label: 'Asuransi', desk: 'Persentase premi asuransi barang. Hanya satu yang aktif.', opsional: true }
+  ] }
+};
+const SEMUA_LANGKAH = Object.entries(LANGKAH).flatMap(([g, x]) => x.item.map((it, i) => ({ ...it, grup: g, no: i + 1 })));
+const langkah = k => SEMUA_LANGKAH.find(x => x.k === k);
+async function hitungMaster() {
+  if (A.mCnt) return A.mCnt;
+  const hasil = await Promise.all(SEMUA_LANGKAH.map(x => sb.from(x.tabel || x.k).select('id', { count: 'exact', head: true })));
+  A.mCnt = {}; SEMUA_LANGKAH.forEach((x, i) => { A.mCnt[x.k] = hasil[i].count || 0; });
+  return A.mCnt;
+}
+const kurang = (it, c) => (it.butuh || []).filter(b => !c[b]);
+async function vMaster() {
+  shell('Data master', '<div class="skeleton" style="height:320px"></div>');
+  const c = await hitungMaster();
+  const wajib = g => LANGKAH[g].item.filter(x => !x.opsional);
+  const sisa = g => wajib(g).filter(x => !c[x.k]);
+  if (!A.mSel || !langkah(A.mSel)) A.mSel = (sisa('tiket')[0] || sisa('cargo')[0] || { k: 'jadwal' }).k;
+  const cur = langkah(A.mSel);
+  const item = it => {
+    const blok = kurang(it, c), ada = c[it.k] > 0, no = langkah(it.k).no;
+    return `<a href="#master" class="mst-step ${it.k === cur.k ? 'on' : ''} ${blok.length ? 'blok' : ''}" data-ms="${it.k}" ${it.k === cur.k ? 'aria-current="page"' : ''}>
+      <span class="mst-no ${ada ? 'ok' : ''}">${ada ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>' : no}</span>
+      <span class="mst-lbl">${it.label}${it.opsional ? ' <small>opsional</small>' : ''}</span>
+      <span class="mst-cnt">${ada ? c[it.k] : blok.length ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Terkunci"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>' : it.opsional ? '' : '<i class="dot-warn" aria-label="Belum diisi"></i>'}</span></a>`;
+  };
+  const sek = g => { const w = wajib(g), s = sisa(g).length; return `<div class="mst-sec"><div class="mst-sec-h"><b>${LANGKAH[g].judul}</b><span>${s ? `${w.length - s}/${w.length} siap` : 'Siap ' + LANGKAH[g].tujuan}</span></div>
+    <div class="mst-prog"><i style="width:${Math.round((w.length - s) / w.length * 100)}%"></i></div>${LANGKAH[g].item.map(item).join('')}</div>`; };
+  const rail = `<aside class="mst-rail card"><p class="mst-intro">Isi data dari atas ke bawah. Langkah yang terkunci butuh data sebelumnya.</p>${sek('tiket')}${sek('cargo')}</aside>`;
+  const pilihHp = `<label class="mst-pick"><span>Data</span><select id="ms-pick" class="input">${Object.entries(LANGKAH).map(([g, x]) => `<optgroup label="${x.judul}">${x.item.map(it => `<option value="${it.k}" ${it.k === cur.k ? 'selected' : ''}>${it.label}${c[it.k] ? ` (${c[it.k]})` : kurang(it, c).length ? ' · terkunci' : it.opsional ? '' : ' · belum diisi'}</option>`).join('')}</optgroup>`).join('')}</select></label>`;
+  $('#isi').innerHTML = `<div class="mst">${rail}<section class="mst-main">${pilihHp}<div id="m-isi"></div></section></div>`;
+  $$('[data-ms]').forEach(a => a.onclick = e => { e.preventDefault(); A.mSel = a.dataset.ms; vMaster(); });
+  $('#ms-pick').onchange = e => { A.mSel = e.target.value; vMaster(); };
+  await isiMaster(cur, c);
+}
+async function isiMaster(cur, c) {
+  const blok = kurang(cur, c);
+  const grupItem = LANGKAH[cur.grup].item;
+  const nextIt = grupItem.slice(grupItem.indexOf(grupItem.find(x => x.k === cur.k)) + 1).find(x => !c[x.k] && !x.opsional && !kurang(x, c).length);
+  const head = `<div class="mst-head"><div><span class="hint">${LANGKAH[cur.grup].judul} · langkah ${cur.no}${cur.opsional ? ' · opsional' : ''}</span><h2>${cur.label}</h2><p>${cur.desk}</p></div>
+    ${c[cur.k] && nextIt ? `<button class="btn btn-secondary btn-sm" data-go="${nextIt.k}">Lanjut: ${nextIt.label} →</button>` : ''}</div>`;
+  if (blok.length) {
+    $('#m-isi').innerHTML = head + `<div class="card mst-blok"><span class="mst-blok-ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
+      <h3>${cur.label} belum bisa diisi</h3><p>${cur.label} memakai data ${blok.map(b => langkah(b).label).join(' dan ')}. Isi data itu dulu, lalu kembali ke sini.</p>
+      <div class="row" style="justify-content:center">${blok.map(b => `<button class="btn btn-primary" data-go="${b}">Isi ${langkah(b).label}</button>`).join('')}</div></div>`;
+  } else if (cur.k === 'layout') {
+    $('#m-isi').innerHTML = head + '<div id="lay-isi"></div>';
+    renderLayout();
+  } else {
+    $('#m-isi').innerHTML = head + hanyaLihat(izinUbah(cur.k), 'Hak akses Anda tidak bisa mengubah data ini.') + await tabelMaster(cur.k);
+    bindMaster(cur.k, () => { A.mCnt = null; vMaster(); });
+  }
+  $$('[data-go]').forEach(b => b.onclick = () => { A.mSel = b.dataset.go; vMaster(); });
 }
 async function vMasterTunggal(key, judul) {
   shell(judul, '<div class="skeleton" style="height:300px"></div>');
@@ -476,15 +541,14 @@ async function vMasterTunggal(key, judul) {
 }
 
 /* ---------- Layout kursi ---------- */
-async function vLayout() {
-  shell('Layout kursi', '<div class="skeleton" style="height:300px"></div>');
+async function renderLayout() {
   const { data: lays } = await sb.from('layout_kursi').select('*').order('nama');
   A.lay = A.lay || (lays[0] && lays[0].id); const cur = lays.find(l => l.id === A.lay);
   A.grid = A.grid && A.gridId === A.lay ? A.grid : (cur ? JSON.parse(JSON.stringify(cur.grid)) : Array.from({ length: 12 }, () => ['k', 'k', 'l', 'k', 'k']));
   A.gridId = A.lay; A.lMode = A.lMode || 'k';
   const lab = { k: 'Kursi', kv: 'VIP', l: 'Lorong', t: 'Toilet', p: 'Pintu', s: 'Sopir' };
   const n = A.grid.flat().filter(c => c === 'k' || c === 'kv').length, nv = A.grid.flat().filter(c => c === 'kv').length;
-  $('#isi').innerHTML = hanyaLihat('master_ubah', 'Hak akses Anda tidak bisa mengubah layout.') + `<div class="toolbar"><select id="pl" class="select" style="width:auto;height:38px" aria-label="Layout">${lays.map(l => `<option value="${l.id}" ${l.id === A.lay ? 'selected' : ''}>${esc(l.nama)}</option>`).join('')}<option value="baru" ${A.lay === 'baru' ? 'selected' : ''}>+ Layout baru</option></select>
+  $('#lay-isi').innerHTML = hanyaLihat('master_ubah', 'Hak akses Anda tidak bisa mengubah layout.') + `<div class="toolbar"><select id="pl" class="select" style="width:auto;height:38px" aria-label="Layout">${lays.map(l => `<option value="${l.id}" ${l.id === A.lay ? 'selected' : ''}>${esc(l.nama)}</option>`).join('')}<option value="baru" ${A.lay === 'baru' ? 'selected' : ''}>+ Layout baru</option></select>
       <label class="sr" for="ln">Nama layout</label><input id="ln" class="input" style="max-width:260px;height:38px" value="${esc(cur ? cur.nama : '')}" placeholder="Nama layout"></div>
     <div class="dash-grid lay"><section class="card panel"><div class="row" role="group" aria-label="Jenis sel">${Object.entries(lab).map(([k, v]) => `<button class="btn btn-sm ${A.lMode === k ? 'btn-primary' : 'btn-secondary'}" data-m="${k}">${v}</button>`).join('')}</div>
       <span class="hint">Pilih jenis, lalu klik sel. Baris pertama untuk sopir dan pintu. Nomor kursi dibuat otomatis per baris (1A, 1B, …).</span>
@@ -492,11 +556,11 @@ async function vLayout() {
       <div class="row"><button class="btn btn-secondary btn-sm" id="addr">+ Baris</button><button class="btn btn-secondary btn-sm" id="delr">− Baris</button></div></section>
     <aside class="card panel"><h2>Ringkasan</h2><div class="kv"><span>Total kursi</span><b class="num">${n}</b></div><div class="kv"><span>VIP</span><b class="num">${nv}</b></div><div class="kv"><span>Eksekutif</span><b class="num">${n - nv}</b></div>
       <button class="btn btn-primary" id="sv">Simpan layout</button><span class="hint">Armada yang memakai layout ini ikut berubah. Jadwal dengan pesanan aktif tetap memakai nomor kursi yang sama bila nomornya masih ada.</span></aside></div>`;
-  $('#pl').onchange = e => { A.lay = e.target.value; A.grid = null; if (A.lay === 'baru') { A.grid = [['s', 'l', 'l', 'l', 'p']].concat(Array.from({ length: 10 }, () => ['k', 'k', 'l', 'k', 'k'])); A.gridId = 'baru'; } vLayout(); };
-  $$('[data-m]').forEach(b => b.onclick = () => { A.lMode = b.dataset.m; vLayout(); });
-  $('#lg').onclick = e => { const c = e.target.closest('.lcell'); if (!c) return; A.grid[+c.dataset.r][+c.dataset.c] = A.lMode; vLayout(); };
-  $('#addr').onclick = () => { A.grid.push(A.grid[A.grid.length - 1].map(c => c === 'p' || c === 's' ? 'k' : c)); vLayout(); };
-  $('#delr').onclick = () => { if (A.grid.length > 2) { A.grid.pop(); vLayout(); } };
+  $('#pl').onchange = e => { A.lay = e.target.value; A.grid = null; if (A.lay === 'baru') { A.grid = [['s', 'l', 'l', 'l', 'p']].concat(Array.from({ length: 10 }, () => ['k', 'k', 'l', 'k', 'k'])); A.gridId = 'baru'; } renderLayout(); };
+  $$('[data-m]').forEach(b => b.onclick = () => { A.lMode = b.dataset.m; renderLayout(); });
+  $('#lg').onclick = e => { const c = e.target.closest('.lcell'); if (!c) return; A.grid[+c.dataset.r][+c.dataset.c] = A.lMode; renderLayout(); };
+  $('#addr').onclick = () => { A.grid.push(A.grid[A.grid.length - 1].map(c => c === 'p' || c === 's' ? 'k' : c)); renderLayout(); };
+  $('#delr').onclick = () => { if (A.grid.length > 2) { A.grid.pop(); renderLayout(); } };
   $('#sv').onclick = async () => {
     if (!punya('master_ubah')) { toast('Hak akses Anda hanya bisa melihat layout.'); return; }
     const nama = $('#ln').value.trim(); if (!nama) { toast('Isi nama layout.', 'bad'); return; }
@@ -506,7 +570,7 @@ async function vLayout() {
     const rec = { nama, grid: A.grid, kursi };
     const { data, error } = A.lay === 'baru' ? await sb.from('layout_kursi').insert(rec).select().single() : await sb.from('layout_kursi').update(rec).eq('id', A.lay).select().single();
     if (error) { toast(error.message, 'bad'); return; }
-    A.lay = data.id; A.gridId = data.id; delete FKCACHE.layout_kursi; toast(`Layout tersimpan: ${kursi.length} kursi.`, 'ok'); vLayout();
+    A.lay = data.id; A.gridId = data.id; delete FKCACHE.layout_kursi; toast(`Layout tersimpan: ${kursi.length} kursi.`, 'ok'); A.mCnt = null; vMaster();
   };
 }
 
@@ -544,7 +608,7 @@ async function vLaporan() {
 async function vPengaturan() {
   const { data: s } = await sb.from('settings').select('*').single();
   const f = (k, l, t = 'text', h = '') => `<div class="field"><label for="g-${k}">${l}</label><input id="g-${k}" class="input ${t === 'number' ? 'num' : ''}" type="${t}" value="${esc(s[k] ?? '')}">${h ? `<span class="hint">${h}</span>` : ''}</div>`;
-  shell('Pengaturan umum', hanyaLihat('pengaturan_ubah', 'Hak akses Anda tidak bisa mengubah pengaturan.') + `<div class="dash-grid"><section class="card panel"><h2>Identitas</h2><div class="fgrid">${f('nama_brand', 'Nama aplikasi')}${f('nama_perusahaan', 'Nama perusahaan (rekening, dokumen)')}${f('wa_tiket', 'WhatsApp CS Tiket', 'text', 'Format 62…')}${f('wa_cargo', 'WhatsApp CS Cargo', 'text', 'Format 62…')}${f('instagram', 'Instagram')}${f('facebook', 'Facebook')}</div><a class="btn btn-secondary" href="#m-tiket" onclick="A.mt={tiket:'rekening'}">Kelola rekening</a></section>
+  shell('Pengaturan umum', hanyaLihat('pengaturan_ubah', 'Hak akses Anda tidak bisa mengubah pengaturan.') + `<div class="dash-grid"><section class="card panel"><h2>Identitas</h2><div class="fgrid">${f('nama_brand', 'Nama aplikasi')}${f('nama_perusahaan', 'Nama perusahaan (rekening, dokumen)')}${f('wa_tiket', 'WhatsApp CS Tiket', 'text', 'Format 62…')}${f('wa_cargo', 'WhatsApp CS Cargo', 'text', 'Format 62…')}${f('instagram', 'Instagram')}${f('facebook', 'Facebook')}</div><a class="btn btn-secondary" href="#master" onclick="A.mSel='rekening'">Kelola rekening</a></section>
     <section class="card panel"><h2>Aturan penjualan tiket</h2>${f('kunci_kursi_menit', 'Kunci kursi saat dipilih (menit)', 'number')}${f('batas_bayar_menit', 'Batas waktu bayar (menit)', 'number')}${f('tutup_jual_jam', 'Tutup penjualan online sebelum berangkat (jam)', 'number')}${f('maks_kursi', 'Maks kursi per pesanan', 'number')}${f('maks_hari_kedepan', 'Pemesanan paling jauh (hari)', 'number')}
       <label class="switch"><input type="checkbox" id="g-kode_unik" ${s.kode_unik ? 'checked' : ''}> Kode unik 3 digit di nominal transfer</label>${f('sla_verifikasi_menit', 'Peringatan verifikasi lebih dari (menit)', 'number')}
       <button class="btn btn-primary" id="sv">Simpan pengaturan</button></section></div>`);
