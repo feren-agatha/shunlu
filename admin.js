@@ -116,20 +116,39 @@ const SVG = {
   ext: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>',
   lock: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>'
 };
-function shell(judul, inner) {
+const IKON_HAL = {
+  verifikasi: '<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>',
+  rekonsiliasi: '<path d="M4 7h13l-3-3M20 17H7l3 3"/>',
+  manifest: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
+  terima: '<path d="M4 13l3-8h10l3 8v6H4z"/><path d="M4 13h5l1 2h4l1-2h5"/>',
+  scan: '<path d="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M7 12h10"/>',
+  serah: '<path d="M20 6L9 17l-5-5"/>',
+  pengaturan: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
+  konten: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>',
+  user: '<circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2 .7 3 2.8 3 6"/>',
+  log: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  tenant: '<path d="M4 21V7l8-4 8 4v14M9 21v-6h6v6M9 10h.01M15 10h.01"/>'
+};
+const svgIkon = d => `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+// Pola halaman standar: navigasi grup (atas) → judul halaman → [daftar bagian di kiri bila grup punya >1 halaman] + isi.
+function shell(judul, inner, opt = {}) {
   const g = GRUPNAV.find(x => x[1].includes(A.view)) || GRUPNAV[0];
   const label = id => (MENU.find(m => m.id === id) || {}).label;
   const nav = GRUPNAV.filter(x => x[1].some(boleh)).map(([n, ids]) => `<a href="#${ids.find(boleh)}" class="${g[0] === n ? 'on' : ''}"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IKON_GRUP[n]}</svg><span class="lf">${n}</span><span class="ls">${{ Dashboard: 'Dasbor', Pengaturan: 'Atur' }[n] || n}</span>${n === 'Ticketing' ? '<span class="cnt" id="cnt-v" hidden></span>' : ''}</a>`).join('');
   const sub = g[1].filter(boleh);
+  let rail = opt.rail || '', pick = opt.pick || '';
+  if (!rail && sub.length > 1) {
+    rail = `<aside class="rail card no-print" aria-label="Bagian ${esc(g[0])}"><div class="rail-sec"><div class="rail-sec-h"><b>${esc(g[0])}</b></div>${sub.map(id => `<a href="#${id}" class="rail-it ${id === A.view ? 'on' : ''}" ${id === A.view ? 'aria-current="page"' : ''}><span class="rail-lead">${svgIkon(IKON_HAL[id] || '')}</span><span class="rail-lbl">${label(id)}</span><span class="rail-trail" ${id === 'verifikasi' ? 'id="cnt-rv"' : ''}></span></a>`).join('')}</div></aside>`;
+    pick = `<label class="rail-pick no-print"><span>${esc(g[0])}</span><select class="input" onchange="location.hash=this.value">${sub.map(id => `<option value="${id}" ${id === A.view ? 'selected' : ''}>${label(id)}</option>`).join('')}</select></label>`;
+  }
   const ini = (A.profil.nama || A.user.email || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
   $('#app').innerHTML = `<div class="adm"><header class="a-head no-print">${logoHtml('admin.html')}<nav class="pillnav" aria-label="Menu back office">${nav}</nav>
       <div class="a-icons">${A.platform ? `<select class="input tenant-pil" id="pil-tenant" aria-label="Tenant aktif">${A.tenants.map(t => `<option value="${t.id}" ${t.id === A.tenant.id ? 'selected' : ''}>${esc(t.nama)}${t.aktif ? '' : ' (nonaktif)'}</option>`).join('')}</select>` : ''}<a class="icon-btn" href="index.html?po=${esc(A.tenant.slug)}" target="_blank" rel="noopener" title="Buka situs customer" aria-label="Buka situs customer">${SVG.ext}</a><a class="icon-btn" href="#keluar" title="Keluar" aria-label="Keluar">${SVG.out}</a><span class="avatar m-only" title="${esc(A.namaAkses)}">${esc(ini)}</span></div></header>
-    <main class="a-pg"><div class="a-title">${A.view !== 'dashboard' ? `<a class="icon-btn no-print" href="#dashboard" aria-label="Kembali ke dashboard">${SVG.back}</a>` : ''}<div><h1>${esc(judul)}</h1><p>${SUB[A.view] || ''}</p></div>
+    <main class="a-pg"><div class="a-title"><div>${g[0] !== 'Dashboard' ? `<span class="eyebrow">${esc(g[0])}</span>` : ''}<h1>${esc(judul)}</h1><p>${SUB[A.view] || ''}</p></div>
       <div class="a-actions no-print"><span class="chip-user">${SVG.lock} ${esc(A.namaAkses)}</span><span class="avatar" title="${esc(A.profil.nama || '')}">${esc(ini)}</span></div></div>
-      ${sub.length > 1 ? `<nav class="subnav no-print" aria-label="Sub menu">${sub.map(id => `<a href="#${id}" class="${id === A.view ? 'on' : ''}">${label(id)}</a>`).join('')}</nav>` : ''}
-      <div id="isi" class="stack" style="gap:20px">${inner}</div></main></div>`;
+      <div class="pg-body ${rail ? 'with-rail' : ''}">${rail}<div class="pg-main">${pick}<div id="isi" class="stack" style="gap:20px">${inner}</div></div></div></main></div>`;
   const pt = $('#pil-tenant'); if (pt) pt.onchange = async () => { try { await rpc('pilih_tenant', { p_tenant: pt.value }); location.hash = 'dashboard'; location.reload(); } catch (e) { toast(pesanGalat(e), 'bad'); } };
-  if (boleh('verifikasi')) sb.rpc('daftar_verifikasi').then(({ data }) => { const c = $('#cnt-v'); if (c && data && data.length) { c.textContent = data.length; c.hidden = false; } });
+  if (boleh('verifikasi')) sb.rpc('daftar_verifikasi').then(({ data }) => { const n = (data || []).length; if (!n) return; [$('#cnt-v'), $('#cnt-rv')].forEach(c => { if (c) { c.textContent = n; c.hidden = false; c.classList.add('rail-badge'); } }); const cv = $('#cnt-v'); if (cv) cv.classList.remove('rail-badge'); });
 }
 function busMini(w = 92) {
   return `<svg width="${w}" height="${Math.round(w * .36)}" viewBox="0 0 100 36" aria-hidden="true"><rect x="2" y="4" width="94" height="24" rx="6" fill="#fff" stroke="#C9CDD3"/><rect x="8" y="8" width="60" height="9" rx="2" fill="#2B2E33"/><rect x="74" y="8" width="18" height="12" rx="2" fill="#2B2E33"/><rect x="2" y="20" width="94" height="3" fill="#7A2BF0"/><circle cx="22" cy="29" r="5" fill="#2B2E33"/><circle cx="78" cy="29" r="5" fill="#2B2E33"/><circle cx="22" cy="29" r="2" fill="#C9CDD3"/><circle cx="78" cy="29" r="2" fill="#C9CDD3"/></svg>`;
@@ -454,11 +473,11 @@ function drawer(key, row, ulang) {
   $('#s', bg).onclick = async () => {
     if (!punya(izinUbah(key))) { toast('Hak akses Anda hanya bisa melihat data ini.'); return; }
     const data = {}; let ok = true;
-    m.fields.filter(f => !f.ro).forEach(f => { const v = ambil(f, bg); const bad = !f.opt && f.type !== 'bool' && (v == null || (Array.isArray(v) && !v.length && f.type !== 'titik')); $('#e-' + f.k, bg).hidden = !bad; if (bad) ok = false; data[f.k] = v; });
-    if (!ok) return;
+    m.fields.filter(f => !f.ro).forEach(f => { const v = ambil(f, bg); const bad = !f.opt && f.type !== 'bool' && (v == null || (Array.isArray(v) && !v.length && f.type !== 'titik')); const er = $('#e-' + f.k, bg); if (er) er.hidden = !bad; if (bad) ok = false; data[f.k] = v; });
+    if (!ok) { const e1 = $$('.err-text:not([hidden])', bg)[0]; if (e1) e1.scrollIntoView({ block: 'center', behavior: 'smooth' }); toast('Lengkapi isian yang ditandai.', 'bad'); return; }
     const q = row ? sb.from(key).update(data).eq('id', row.id) : sb.from(key).insert(data);
     const { error } = await q;
-    if (error) { $('#d-e', bg).textContent = error.code === '23505' ? 'Data dengan kode/nama ini sudah ada.' : error.code === '23514' ? 'Isian melanggar aturan (cek harga VIP ≥ Eksekutif, tanggal selesai ≥ mulai, atau nilai lain).' : error.message; $('#d-e', bg).hidden = false; return; }
+    if (error) { toast('Belum tersimpan. ' + (error.code === '23505' ? 'Data dengan kode/nama ini sudah ada.' : 'Lihat keterangan di bawah.'), 'bad'); $('#d-e', bg).textContent = error.code === '23505' ? 'Data dengan kode/nama ini sudah ada.' : error.code === '23514' ? 'Isian melanggar aturan (cek harga VIP ≥ Eksekutif, tanggal selesai ≥ mulai, atau nilai lain).' : error.message; $('#d-e', bg).hidden = false; return; }
     close(); delete FKCACHE[key]; toast(`${m.label} tersimpan.`, 'ok'); ulang();
   };
 }
@@ -502,16 +521,16 @@ async function vMaster() {
   const cur = langkah(A.mSel);
   const item = it => {
     const blok = kurang(it, c), ada = c[it.k] > 0, no = langkah(it.k).no;
-    return `<a href="#master" class="mst-step ${it.k === cur.k ? 'on' : ''} ${blok.length ? 'blok' : ''}" data-ms="${it.k}" ${it.k === cur.k ? 'aria-current="page"' : ''}>
-      <span class="mst-no ${ada ? 'ok' : ''}">${ada ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>' : no}</span>
-      <span class="mst-lbl">${it.label}${it.opsional ? ' <small>opsional</small>' : ''}</span>
-      <span class="mst-cnt">${ada ? c[it.k] : blok.length ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Terkunci"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>' : it.opsional ? '' : '<i class="dot-warn" aria-label="Belum diisi"></i>'}</span></a>`;
+    return `<a href="#master" class="rail-it ${it.k === cur.k ? 'on' : ''} ${blok.length ? 'blok' : ''}" data-ms="${it.k}" ${it.k === cur.k ? 'aria-current="page"' : ''}>
+      <span class="rail-lead ${ada ? 'ok' : ''}">${ada ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>' : no}</span>
+      <span class="rail-lbl">${it.label}${it.opsional ? ' <small>opsional</small>' : ''}</span>
+      <span class="rail-trail">${ada ? c[it.k] : blok.length ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Terkunci"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>' : it.opsional ? '' : '<i class="dot-warn" aria-label="Belum diisi"></i>'}</span></a>`;
   };
-  const sek = g => { const w = wajib(g), s = sisa(g).length; return `<div class="mst-sec"><div class="mst-sec-h"><b>${LANGKAH[g].judul}</b><span>${s ? `${w.length - s}/${w.length} siap` : 'Siap ' + LANGKAH[g].tujuan}</span></div>
-    <div class="mst-prog"><i style="width:${Math.round((w.length - s) / w.length * 100)}%"></i></div>${LANGKAH[g].item.map(item).join('')}</div>`; };
-  const rail = `<aside class="mst-rail card"><p class="mst-intro">Isi data dari atas ke bawah. Langkah yang terkunci butuh data sebelumnya.</p>${sek('tiket')}${sek('cargo')}</aside>`;
-  const pilihHp = `<label class="mst-pick"><span>Data</span><select id="ms-pick" class="input">${Object.entries(LANGKAH).map(([g, x]) => `<optgroup label="${x.judul}">${x.item.map(it => `<option value="${it.k}" ${it.k === cur.k ? 'selected' : ''}>${it.label}${c[it.k] ? ` (${c[it.k]})` : kurang(it, c).length ? ' · terkunci' : it.opsional ? '' : ' · belum diisi'}</option>`).join('')}</optgroup>`).join('')}</select></label>`;
-  $('#isi').innerHTML = `<div class="mst">${rail}<section class="mst-main">${pilihHp}<div id="m-isi"></div></section></div>`;
+  const sek = g => { const w = wajib(g), s = sisa(g).length; return `<div class="rail-sec"><div class="rail-sec-h"><b>${LANGKAH[g].judul}</b><span>${s ? `${w.length - s}/${w.length} siap` : 'Siap ' + LANGKAH[g].tujuan}</span></div>
+    <div class="rail-prog"><i style="width:${Math.round((w.length - s) / w.length * 100)}%"></i></div>${LANGKAH[g].item.map(item).join('')}</div>`; };
+  const rail = `<aside class="rail card no-print"><p class="rail-intro">Isi data dari atas ke bawah. Langkah yang terkunci butuh data sebelumnya.</p>${sek('tiket')}${sek('cargo')}</aside>`;
+  const pilihHp = `<label class="rail-pick no-print"><span>Data master</span><select id="ms-pick" class="input">${Object.entries(LANGKAH).map(([g, x]) => `<optgroup label="${x.judul}">${x.item.map(it => `<option value="${it.k}" ${it.k === cur.k ? 'selected' : ''}>${it.label}${c[it.k] ? ` (${c[it.k]})` : kurang(it, c).length ? ' · terkunci' : it.opsional ? '' : ' · belum diisi'}</option>`).join('')}</optgroup>`).join('')}</select></label>`;
+  shell('Data master', '<div id="m-isi"></div>', { rail, pick: pilihHp });
   $$('[data-ms]').forEach(a => a.onclick = e => { e.preventDefault(); A.mSel = a.dataset.ms; vMaster(); });
   $('#ms-pick').onchange = e => { A.mSel = e.target.value; vMaster(); };
   await isiMaster(cur, c);
