@@ -37,14 +37,6 @@ const izinUbah = key => key === 'konten' ? 'konten_ubah' : key === 'rekening' ? 
 const hanyaLihat = (izin, teks) => punya(izin) ? '' : `<div class="banner info no-print"><div><b>Hanya lihat.</b> ${teks}</div></div>`;
 const boleh = id => { const m = MENU.find(x => x.id === id); return !!(m && m.izin && m.izin.some(punya)); };
 
-function shell(judul, inner) {
-  $('#app').innerHTML = `<div class="a-wrap"><nav class="a-side no-print" aria-label="Menu back office">${logoHtml('admin.html')}
-    ${MENU.map((m, i) => { if (!m.grup) return boleh(m.id) ? `<a href="#${m.id}" class="${A.view === m.id ? 'on' : ''}">${m.label}${m.id === 'verifikasi' ? '<span class="cnt" id="cnt-v" hidden></span>' : ''}</a>` : ''; const sisa = MENU.slice(i + 1); const j = sisa.findIndex(x => x.grup); return (j < 0 ? sisa : sisa.slice(0, j)).some(x => boleh(x.id)) ? `<h5>${m.grup}</h5>` : ''; }).join('')}
-    <a href="#keluar" style="margin-top:auto">Keluar</a></nav>
-    <div class="a-main"><div class="a-top no-print"><h1>${esc(judul)}</h1><span class="muted" style="font-size:13px">${esc(A.profil.nama || '')} · ${esc(A.namaAkses)}</span></div>
-    <div class="a-content"><div id="isi" class="stack" style="gap:20px">${inner}</div></div></div></div>`;
-  if (boleh('verifikasi')) sb.rpc('daftar_verifikasi').then(({ data }) => { const c = $('#cnt-v'); if (c && data && data.length) { c.textContent = data.length; c.hidden = false; } });
-}
 const kosong = (j, i) => `<div class="card empty"><h3>${j}</h3><p>${i}</p></div>`;
 const err = e => toast(pesanGalat(e), 'bad');
 
@@ -95,30 +87,91 @@ async function route() {
   try { await V[h](); } catch (e) { console.error(e); shell('Galat', kosong('Halaman gagal dimuat.', esc(pesanGalat(e)))); }
 }
 
-/* ---------- Dashboard ---------- */
+/* ---------- Kerangka & Dashboard ---------- */
+const GRUPNAV = [['Dashboard', ['dashboard']], ['Ticketing', ['verifikasi', 'rekonsiliasi', 'manifest']], ['Cargo', ['terima', 'scan', 'serah']], ['Master', ['m-tiket', 'm-cargo', 'layout']], ['Laporan', ['laporan']], ['Pengaturan', ['pengaturan', 'konten', 'user', 'log']]];
+const SUB = {
+  dashboard: 'Penjualan, keberangkatan armada, dan peringatan hari ini', verifikasi: 'Cocokkan bukti transfer dengan mutasi, lalu setujui atau tolak',
+  rekonsiliasi: 'Unggah mutasi rekening untuk mencocokkan pembayaran sekaligus', manifest: 'Daftar penumpang per keberangkatan dan scan boarding',
+  terima: 'Timbang ulang barang, terima pembayaran, dan cetak label koli', scan: 'Ubah status koli dengan scan beruntun', serah: 'Foto atau tanda tangan penerima untuk menyelesaikan pengiriman',
+  'm-tiket': 'Jadwal, harga, aturan harga, promo, rute, armada, driver, branch, rekening', 'm-cargo': 'Tarif, zona, gudang, layanan, dan asuransi', layout: 'Susunan kursi per tipe armada',
+  laporan: 'Rekap tiket dan cargo per periode', pengaturan: 'Identitas, kontak, dan aturan penjualan', konten: 'Promo, berita, FAQ, dan halaman situs',
+  user: 'Tambah user, atur hak akses, dan reset password', log: 'Jejak aksi admin untuk audit'
+};
+const SVG = {
+  back: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>',
+  out: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>',
+  ext: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>',
+  lock: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>'
+};
+function shell(judul, inner) {
+  const g = GRUPNAV.find(x => x[1].includes(A.view)) || GRUPNAV[0];
+  const label = id => (MENU.find(m => m.id === id) || {}).label;
+  const nav = GRUPNAV.filter(x => x[1].some(boleh)).map(([n, ids]) => `<a href="#${ids.find(boleh)}" class="${g[0] === n ? 'on' : ''}">${n}${n === 'Ticketing' ? '<span class="cnt" id="cnt-v" hidden></span>' : ''}</a>`).join('');
+  const sub = g[1].filter(boleh);
+  const ini = (A.profil.nama || A.user.email || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  $('#app').innerHTML = `<div class="adm"><header class="a-head no-print">${logoHtml('admin.html')}<nav class="pillnav" aria-label="Menu back office">${nav}</nav>
+      <div class="a-icons"><a class="icon-btn" href="index.html" target="_blank" rel="noopener" title="Buka situs customer" aria-label="Buka situs customer">${SVG.ext}</a><a class="icon-btn" href="#keluar" title="Keluar" aria-label="Keluar">${SVG.out}</a></div></header>
+    <main class="a-pg"><div class="a-title">${A.view !== 'dashboard' ? `<a class="icon-btn no-print" href="#dashboard" aria-label="Kembali ke dashboard">${SVG.back}</a>` : ''}<div><h1>${esc(judul)}</h1><p>${SUB[A.view] || ''}</p></div>
+      <div class="a-actions no-print"><span class="chip-user">${SVG.lock} ${esc(A.namaAkses)}</span><span class="avatar" title="${esc(A.profil.nama || '')}">${esc(ini)}</span></div></div>
+      ${sub.length > 1 ? `<nav class="subnav no-print" aria-label="Sub menu">${sub.map(id => `<a href="#${id}" class="${id === A.view ? 'on' : ''}">${label(id)}</a>`).join('')}</nav>` : ''}
+      <div id="isi" class="stack" style="gap:20px">${inner}</div></main></div>`;
+  if (boleh('verifikasi')) sb.rpc('daftar_verifikasi').then(({ data }) => { const c = $('#cnt-v'); if (c && data && data.length) { c.textContent = data.length; c.hidden = false; } });
+}
+function busMini(w = 92) {
+  return `<svg width="${w}" height="${Math.round(w * .36)}" viewBox="0 0 100 36" aria-hidden="true"><rect x="2" y="4" width="94" height="24" rx="6" fill="#fff" stroke="#C9CDD3"/><rect x="8" y="8" width="60" height="9" rx="2" fill="#2B2E33"/><rect x="74" y="8" width="18" height="12" rx="2" fill="#2B2E33"/><rect x="2" y="20" width="94" height="3" fill="#7A2BF0"/><circle cx="22" cy="29" r="5" fill="#2B2E33"/><circle cx="78" cy="29" r="5" fill="#2B2E33"/><circle cx="22" cy="29" r="2" fill="#C9CDD3"/><circle cx="78" cy="29" r="2" fill="#C9CDD3"/></svg>`;
+}
+const menitJkt = () => { const x = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' })); return x.getHours() * 60 + x.getMinutes(); };
+const keMenit = t => { const [h, m] = t.split(':'); return +h * 60 + +m; };
+const keJam = m => pad(Math.floor(m / 60) % 24) + ':' + pad(m % 60);
 async function vDashboard() {
   shell('Dashboard', '<div class="skeleton" style="height:300px"></div>');
-  const d = await rpc('ringkasan_dashboard', {});
+  const [d, { data: jd }] = await Promise.all([rpc('ringkasan_dashboard', {}), sb.from('jadwal').select('id,kode,jam,hari,armada(nopol,bagasi_kg),rute(kode,asal,tujuan,estimasi_menit)').eq('aktif', true).order('jam')]);
   let tiket = tiketOps(), cargo = cargoOps(); if (!tiket && !cargo) { tiket = cargo = true; }
-  const k = [
-    tiket && { l: 'Pendapatan tiket hari ini', v: rp(d.pendapatan_hari_ini), s: 'Pesanan lunas hari ini' },
-    tiket && { l: 'Tiket terjual hari ini', v: d.tiket_terjual, s: 'Kursi lunas' },
-    tiket && { l: 'Menunggu verifikasi', v: d.menunggu_verifikasi, s: d.lewat_sla ? d.lewat_sla + ' lewat SLA' : 'Semua dalam SLA', c: d.lewat_sla ? 'bad' : '' },
-    tiket && { l: 'Median verifikasi (7 hari)', v: d.median_verifikasi_menit == null ? '—' : d.median_verifikasi_menit + ' mnt', s: 'Target ≤ 15 menit' },
-    cargo && { l: 'Resi dalam perjalanan', v: d.resi_dalam_perjalanan, s: 'Status saat ini' },
-    cargo && { l: 'Resi lewat estimasi', v: d.resi_lewat_estimasi, s: 'Belum diterima', c: d.resi_lewat_estimasi ? 'warn' : '' }
-  ].filter(Boolean);
-  const seri = d.pendapatan_14_hari || [];
-  const max = Math.max(1, ...seri.map(x => x.nilai)); const W = 640, H = 220, l = 56, b = 28, t = 16, r = 12, bw = (W - l - r) / Math.max(1, seri.length);
-  const y = v => t + (H - t - b) * (1 - v / max);
-  const ticks = [0, .25, .5, .75, 1].map(f => max * f);
-  const chart = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Pendapatan tiket 14 hari terakhir">${ticks.map(v => `<line x1="${l}" x2="${W - r}" y1="${y(v)}" y2="${y(v)}" stroke="#EDF1F5"/><text x="${l - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#6E7D8E">${(v / 1e6).toLocaleString('id-ID', { maximumFractionDigits: 1 })}</text>`).join('')}
-    ${seri.map((s, i) => { const x = l + i * bw + 4, last = i === seri.length - 1; return `<rect x="${x}" y="${y(s.nilai)}" width="${bw - 8}" height="${y(0) - y(s.nilai)}" rx="3" fill="${last ? '#0F5C4D' : '#9CCBBE'}"><title>${tglPendek(s.tanggal)}: ${rp(s.nilai)}</title></rect><text x="${x + (bw - 8) / 2}" y="${H - 10}" text-anchor="middle" font-size="10.5" fill="#6E7D8E">${new Date(s.tanggal + 'T00:00:00').getDate()}</text>`; }).join('')}<text x="${l}" y="10" font-size="11" fill="#6E7D8E">Rp juta</text></svg>`;
-  const per = (d.peringatan || []);
-  $('#isi').innerHTML = `<div class="kpis">${k.map(x => `<div class="card kpi ${x.c || ''}"><span>${x.l}</span><b class="num">${x.v}</b><small>${x.s}</small></div>`).join('')}</div>
-    <div class="dash-grid">${tiket ? `<section class="card panel"><h2>Pendapatan tiket harian</h2>${chart}</section>` : ''}
-    <section class="card panel"><h2>Peringatan SLA</h2>${per.length ? per.map(p => `<div class="alert"><i class="${p.jenis === 'verifikasi' ? 'bad' : ''}"></i><div><b class="mono">${esc(p.kode)}</b> ${p.jenis === 'verifikasi' ? `menunggu verifikasi ${p.menit} menit` : `lewat estimasi tiba ${tglPendek(p.estimasi)}`}</div><a class="btn btn-secondary btn-sm" href="#${p.jenis === 'verifikasi' ? 'verifikasi' : 'scan'}">Buka</a></div>`).join('') : '<p class="muted" style="margin:0">Tidak ada peringatan.</p>'}</section></div>
-    ${tiket ? `<section class="card panel"><h2>Okupansi jadwal hari ini</h2>${(d.okupansi || []).map(o => `<div class="occ"><span class="num">${esc(o.jadwal)}</span><span class="bar"><i style="width:${o.persen}%;${o.persen < 65 ? 'background:var(--warn)' : ''}"></i></span><b class="num">${o.persen}%</b></div>`).join('') || '<p class="muted">Tidak ada jadwal hari ini.</p>'}</section>` : ''}`;
+  const seri = d.pendapatan_14_hari || []; const kmrn = seri.length > 1 ? seri[seri.length - 2].nilai : 0;
+  const delta = kmrn ? Math.round((d.pendapatan_hari_ini - kmrn) / kmrn * 100) : null;
+  const dow = ((new Date(hariIni() + 'T00:00:00').getDay() + 6) % 7) + 1;
+  const now = menitJkt();
+  const okup = {}; (d.okupansi || []).forEach(o => { okup[o.jadwal] = o.persen; });
+  const hariini = (jd || []).filter(j => (j.hari || []).includes(dow)).map(j => { const s = keMenit(j.jam), e = s + j.rute.estimasi_menit; return { ...j, s, e, okup: okup[jam(j.jam) + ' ' + j.rute.kode] ?? 0, st: e <= now ? 'done' : s <= now ? 'now' : 'up' }; });
+  if (!A.depSel || !hariini.find(j => j.id === A.depSel)) A.depSel = (hariini.find(j => j.st !== 'done') || hariini[0] || {}).id;
+  const sel = hariini.find(j => j.id === A.depSel);
+  const badgeDelta = v => v == null ? '' : `<span class="badge ${v >= 0 ? 'b-lime' : 'b-accent'}">${v >= 0 ? '+' : ''}${v}%</span>`;
+  const stats = [
+    tiket && `<div class="stat"><span>Pendapatan tiket hari ini</span><b>${rp(d.pendapatan_hari_ini)} ${badgeDelta(delta)}</b></div>`,
+    tiket && `<div class="stat"><span>Tiket terjual</span><b>${d.tiket_terjual}</b></div>`,
+    tiket && `<div class="stat"><span>Menunggu verifikasi</span><b>${d.menunggu_verifikasi} ${d.lewat_sla ? `<span class="badge b-accent">${d.lewat_sla} lewat SLA</span>` : ''}</b></div>`,
+    tiket && `<div class="stat"><span>Median verifikasi</span><b>${d.median_verifikasi_menit == null ? '—' : d.median_verifikasi_menit + ' mnt'}</b></div>`,
+    cargo && `<div class="stat"><span>Resi dalam perjalanan</span><b>${d.resi_dalam_perjalanan}</b></div>`,
+    cargo && `<div class="stat"><span>Resi lewat estimasi</span><b>${d.resi_lewat_estimasi} ${d.resi_lewat_estimasi ? '<span class="badge b-accent">perlu dicek</span>' : ''}</b></div>`
+  ].filter(Boolean).join('');
+  // Gantt 04:00–24:00
+  const A0 = 240, A1 = 1440, pos = m => ((Math.min(Math.max(m, A0), A1) - A0) / (A1 - A0) * 100);
+  const armada = [...new Set(hariini.map(j => j.armada.nopol))];
+  const gantt = hariini.length ? `<div class="gantt" role="img" aria-label="Jadwal armada hari ini"><div class="g-head"><span>Armada</span><div class="g-scale">${[4, 8, 12, 16, 20, 24].map(h => `<span style="left:${pos(h * 60)}%">${pad(h % 24)}:00</span>`).join('')}</div></div>
+      ${armada.map(nop => `<div class="g-row"><span class="g-lbl">${busMini(34)} ${esc(nop)}</span><div class="g-track">${hariini.filter(j => j.armada.nopol === nop).map(j => `<a class="g-bar ${j.st}" href="#dashboard" data-dep="${j.id}" style="left:${pos(j.s)}%;width:${Math.max(pos(j.e) - pos(j.s), 6)}%" title="${esc(j.rute.asal)} → ${esc(j.rute.tujuan)} ${jam(j.jam)}–${keJam(j.e)}"><span>${esc(j.rute.kode)}</span><span>${jam(j.jam)}</span></a>`).join('')}${now >= A0 ? `<span class="g-now" style="left:${pos(now)}%" data-t="${keJam(now)}"></span>` : ''}</div></div>`).join('')}</div>` : '<p class="muted" style="margin:0">Tidak ada jadwal hari ini.</p>';
+  const W = 640, H = 200, l = 56, b = 26, t = 14, r = 8, max = Math.max(1, ...seri.map(x => x.nilai)), bw = (W - l - r) / Math.max(1, seri.length), y = v => t + (H - t - b) * (1 - v / max);
+  const chart = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Pendapatan tiket 14 hari terakhir">${[0, .5, 1].map(f => `<line x1="${l}" x2="${W - r}" y1="${y(max * f)}" y2="${y(max * f)}" stroke="#EEF0F2"/><text x="${l - 8}" y="${y(max * f) + 4}" text-anchor="end" font-size="11" fill="#8B9099">${(max * f / 1e6).toLocaleString('id-ID', { maximumFractionDigits: 1 })}</text>`).join('')}
+    ${seri.map((s, i) => { const x = l + i * bw + 4, last = i === seri.length - 1; return `<rect x="${x}" y="${y(s.nilai)}" width="${bw - 8}" height="${Math.max(0, y(0) - y(s.nilai))}" rx="6" fill="${last ? '#0E0F11' : '#7A2BF0'}" fill-opacity="${last ? 1 : .75}"><title>${tglPendek(s.tanggal)}: ${rp(s.nilai)}</title></rect><text x="${x + (bw - 8) / 2}" y="${H - 8}" text-anchor="middle" font-size="10.5" fill="#8B9099">${new Date(s.tanggal + 'T00:00:00').getDate()}</text>`; }).join('')}<text x="${l}" y="10" font-size="11" fill="#8B9099">Rp juta</text></svg>`;
+  const per = d.peringatan || [];
+  $('#isi').innerHTML = `<div class="stat-row">${stats}</div>
+    <div class="dash-split">
+      <div class="stack" style="gap:16px">
+        <section><div class="spread" style="margin-bottom:8px"><h2 style="font-size:18px;font-weight:500">Keberangkatan hari ini</h2><span class="hint">${hariini.length} jadwal · ${tglPanjang(hariIni())}</span></div>
+          <div class="dep-row">${hariini.map(j => `<button class="dep" data-dep="${j.id}" aria-pressed="${j.id === A.depSel}"><span>${esc(j.kode)} · ${jam(j.jam)}</span><b>${esc(j.rute.asal)} → ${esc(j.rute.tujuan)}</b>${busMini(84)}<small>${j.st === 'done' ? 'Selesai' : j.st === 'now' ? 'Dalam perjalanan' : 'Belum berangkat'} · okupansi ${j.okup}%</small></button>`).join('') || '<p class="muted">Tidak ada keberangkatan hari ini.</p>'}</div></section>
+        <section class="card panel"><div class="spread"><h2>Jadwal armada</h2><span class="row" style="gap:12px;font-size:12px;color:var(--ink-3)"><span><i class="lg" style="background:var(--accent)"></i>akan berangkat</span><span><i class="lg" style="background:#D5D7DC"></i>selesai</span><span style="color:var(--bad)">│ sekarang</span></span></div><div class="g-wrap">${gantt}</div></section>
+      </div>
+      <aside class="card panel">${sel ? `<span class="hint">${esc(sel.kode)}</span><h2 style="font-size:20px">${esc(sel.rute.asal)} → ${esc(sel.rute.tujuan)}</h2>
+        <div style="background:#F6F7F9;border-radius:14px;padding:12px;display:flex;justify-content:center">${busMini(220)}</div>
+        <div class="kv"><span>Armada</span><b>${esc(sel.armada.nopol)}</b></div><div class="kv"><span>Berangkat</span><b>${jam(sel.jam)}</b></div><div class="kv"><span>Tiba</span><b>${keJam(sel.e)}</b></div>
+        <div class="kv"><span>Status</span><b>${sel.st === 'done' ? '<span class="badge b-neutral">Selesai</span>' : sel.st === 'now' ? '<span class="badge b-accent">Dalam perjalanan</span>' : '<span class="badge b-lime">Belum berangkat</span>'}</b></div>
+        <div class="stack" style="gap:6px"><div class="kv"><span>Okupansi</span><b class="num">${sel.okup}%</b></div><div class="occ" style="grid-template-columns:1fr"><span class="bar"><i style="width:${sel.okup}%"></i></span></div></div>
+        <div class="kv"><span>Bagasi cargo</span><b>${sel.armada.bagasi_kg} kg</b></div>
+        ${boleh('manifest') ? '<button class="btn btn-primary" id="ke-man">Buka manifest</button>' : ''}` : '<p class="muted" style="margin:0">Pilih keberangkatan untuk melihat detail.</p>'}</aside>
+    </div>
+    <div class="dash-grid">${tiket ? `<section class="card panel"><div class="spread"><h2>Pendapatan tiket harian</h2><span class="hint">14 hari terakhir</span></div>${chart}</section>` : ''}
+      <section class="card panel"><h2>Peringatan SLA</h2>${per.length ? per.map(p => `<div class="alert"><i class="${p.jenis === 'verifikasi' ? 'bad' : ''}"></i><div><b class="mono">${esc(p.kode)}</b> ${p.jenis === 'verifikasi' ? `menunggu verifikasi ${p.menit} menit` : `lewat estimasi tiba ${tglPendek(p.estimasi)}`}</div><a class="btn btn-secondary btn-sm" href="#${p.jenis === 'verifikasi' ? 'verifikasi' : 'scan'}">Buka</a></div>`).join('') : '<p class="muted" style="margin:0">Tidak ada peringatan.</p>'}</section></div>`;
+  $$('[data-dep]').forEach(b => b.onclick = e => { e.preventDefault(); A.depSel = b.dataset.dep; vDashboard(); });
+  const km = $('#ke-man'); if (km) km.onclick = () => { A.mJadwal = sel.id; A.mTgl = hariIni(); location.hash = 'manifest'; };
 }
 
 /* ---------- Verifikasi ---------- */

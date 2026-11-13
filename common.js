@@ -96,7 +96,7 @@ function unduh(nama, isi, tipe = 'text/csv') {
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([isi], { type: tipe })); a.download = nama; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
-const logoHtml = (href = 'index.html') => `<a class="logo" href="${href}" aria-label="Nusalaju"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 18.5V5.5l12 13V5.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 9.2l7 7.6" stroke="#E3A82B" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="1.6 2.4"/></svg></span>Nusalaju</a>`;
+const logoHtml = (href = 'index.html') => `<a class="logo" href="${href}" aria-label="Nusalaju"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 18.5V5.5l12 13V5.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 9.2l7 7.6" stroke="#C9F45E" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="1.6 2.4"/></svg></span>Nusalaju</a>`;
 const IC = {
   swap: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 4v16M4 7l3-3 3 3M17 20V4M14 17l3 3 3-3"/></svg>',
   wa: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12a9 9 0 0 1-13.4 7.8L3 21l1.3-4.4A9 9 0 1 1 21 12z"/></svg>',

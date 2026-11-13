@@ -40,6 +40,9 @@ function progress(step) {
 function tampil(html, opt) {
   $('#app').innerHTML = layout(html, opt);
   const b = $('#burger'); if (b) b.onclick = () => { const nv = $('#cnav'); nv.classList.toggle('open'); b.setAttribute('aria-expanded', nv.classList.contains('open')); };
+  const h = (location.hash.slice(1).split('/')[0]) || 'beranda';
+  const peta = { jadwal: 'beranda', kursi: 'beranda', data: 'beranda', bayar: 'pesanan', eticket: 'pesanan', kirim: 'ongkir', resi: 'lacak' };
+  $$('#cnav a').forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + (peta[h] || h)));
   window.scrollTo(0, 0);
 }
 const kosong = (judul, isi, aksi = '') => `<div class="card empty"><h3>${judul}</h3><p>${isi}</p>${aksi}</div>`;
@@ -65,7 +68,9 @@ async function vBeranda() {
       <div class="field"><button class="btn btn-primary" type="submit">Lacak Kiriman</button></div></form>
       <p class="hint" style="margin:10px 0 0">Mau kirim barang? <a href="#ongkir" style="font-weight:600;color:var(--brand)">Cek ongkir dulu</a></p>`;
   tampil(`<section class="hero">
-      <div class="stack" style="gap:8px;position:relative"><h1>Laju antarkota, aman sampai.</h1><p>Tiket bus antarkota dengan pilih kursi sendiri, plus cargo yang ikut bus dan bisa dilacak sampai diterima.</p></div>
+      <div class="hero-top"><div class="stack" style="gap:10px"><span class="badge b-lime" style="align-self:flex-start">Tiket bus &amp; cargo antarkota</span><h1>Laju antarkota, aman sampai.</h1><p>Pilih kursi sendiri, bayar transfer, e-ticket langsung terbit. Cargo ikut bus dan bisa dilacak sampai diterima.</p>
+        <div class="hero-stats"><div><b>5</b><span>rute aktif</span></div><div><b>10 mnt</b><span>kursi dikunci untukmu</span></div><div><b>24/7</b><span>lacak resi</span></div></div></div>
+        <div class="hero-bus" aria-hidden="true"><svg viewBox="0 0 420 170" width="100%"><ellipse cx="210" cy="156" rx="190" ry="8" fill="#0E0F11" opacity=".08"/><path d="M18 40q0-22 22-22h318q30 0 40 28l10 34v52q0 14-14 14H32q-14 0-14-14z" fill="#fff" stroke="#D5D9DE" stroke-width="2"/><rect x="34" y="34" width="250" height="44" rx="8" fill="#1F2226"/><g fill="#2E3238">${[0,1,2,3,4].map(i=>`<rect x="${40+i*49}" y="40" width="42" height="32" rx="4"/>`).join('')}</g><path d="M300 34h56q16 0 22 14l12 30H300z" fill="#1F2226"/><rect x="18" y="96" width="400" height="8" fill="#7A2BF0"/><rect x="18" y="108" width="400" height="3" fill="#C9F45E"/><text x="40" y="128" font-family="Urbanist,sans-serif" font-size="15" font-weight="600" fill="#0E0F11">Nusalaju</text><g><circle cx="96" cy="146" r="17" fill="#1F2226"/><circle cx="96" cy="146" r="7" fill="#C9CDD3"/><circle cx="334" cy="146" r="17" fill="#1F2226"/><circle cx="334" cy="146" r="7" fill="#C9CDD3"/></g><rect x="398" y="84" width="14" height="8" rx="3" fill="#C9F45E"/></svg></div></div>
       <div class="search-card"><div class="tabs" role="tablist"><button role="tab" id="t-tiket" aria-selected="${S.tab === 'tiket'}">Tiket Bus</button><button role="tab" id="t-cargo" aria-selected="${S.tab === 'cargo'}">Cargo</button></div>${S.tab === 'tiket' ? tiket : cargo}</div>
     </section>
     <div class="feat">
