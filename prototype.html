@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desain Shunlu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Noto+Serif+SC:wght@700&text=%E9%A1%BA%E8%B7%AF&display=swap" rel="stylesheet">
+<style>
+/* Layout: prototype shell (gelap) membungkus satu bingkai aplikasi; bingkai bisa desktop atau ponsel 380 px, responsif via container query */
+:root{
+  --brand:#0F5C4D; --brand-700:#0A463B; --brand-50:#E7F3EF; --brand-100:#C9E4DC;
+  --accent:#E3A82B; --accent-50:#FCF4E1; --accent-700:#7A5300;
+  --ok:#1F8A4C; --ok-50:#E7F5EC; --warn:#B45309; --warn-50:#FDF1E3; --bad:#C2312B; --bad-50:#FCEBEA;
+  --ink:#14202E; --ink-2:#4A5A6C; --ink-3:#6E7D8E; --line:#DCE3EB; --line-2:#EDF1F5; --bg:#F3F6F9; --surface:#FFFFFF;
+  --shell:#0E1621; --shell-2:#1A2533; --shell-ink:#E6ECF2; --shell-ink-2:#9AA8B8;
+  --font:'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono:'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --r-sm:8px; --r-md:12px; --r-lg:16px;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--shell);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+h1,h2,h3{text-wrap:balance;margin:0}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- Shell ---------- */
+.shell-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:12px 20px;background:var(--shell);color:var(--shell-ink);border-bottom:1px solid var(--shell-2);position:sticky;top:0;z-index:50}
+.shell-title{font-weight:700;font-size:15px;margin-right:auto;display:flex;gap:10px;align-items:center}
+.shell-title small{font-weight:500;color:var(--shell-ink-2);font-size:12px}
+.seg{display:inline-flex;background:var(--shell-2);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--shell-ink-2);padding:6px 14px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:600}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink)}
+.shell-select{background:var(--shell-2);color:var(--shell-ink);border:1px solid #2A3646;border-radius:8px;padding:6px 10px;font-size:13px;max-width:260px}
+.shell-states{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 20px;background:#121C28;color:var(--shell-ink-2);font-size:12px;border-bottom:1px solid var(--shell-2)}
+.shell-states .lbl{font-weight:600;color:var(--shell-ink);margin-right:4px}
+.chip{border:1px solid #2F3D50;background:transparent;color:var(--shell-ink);border-radius:999px;padding:4px 12px;font-size:12px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#1D1300;font-weight:600}
+.stage{padding:24px 20px 32px;display:flex;justify-content:center}
+.frame{background:var(--bg);width:100%;max-width:1280px;border-radius:14px;overflow:hidden;container-type:inline-size;container-name:app;position:relative;min-height:720px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.frame.mobile{max-width:380px;border-radius:32px;border:10px solid #000;min-height:760px}
+.notes{max-width:1280px;margin:0 auto 40px;padding:0 20px;color:var(--shell-ink-2);font-size:13px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.notes section{background:var(--shell-2);border-radius:12px;padding:16px}
+.notes h3{color:var(--shell-ink);font-size:13px;margin-bottom:8px}
+.notes ul{margin:0;padding-left:18px}
+.notes b{color:var(--shell-ink)}
+
+/* ---------- Komponen dasar ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:var(--r-sm);border:1px solid transparent;font-weight:600;cursor:pointer;font-size:15px;text-decoration:none;white-space:nowrap}
+.btn-primary{background:var(--brand);color:#fff}
+.btn-primary:hover{background:var(--brand-700)}
+.btn-primary:disabled{background:#AAB7C4;cursor:not-allowed}
+.btn-secondary{background:var(--surface);border-color:var(--line);color:var(--brand)}
+.btn-secondary:hover{border-color:var(--brand)}
+.btn-text{background:transparent;color:var(--brand);padding:0 8px}
+.btn-danger{background:var(--surface);color:var(--bad);border-color:#EBC5C2}
+.btn-danger.solid{background:var(--bad);color:#fff}
+.btn-sm{min-height:36px;padding:0 12px;font-size:14px}
+.btn-block{width:100%}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label{font-size:13px;font-weight:600;color:var(--ink-2)}
+.input,.select{height:44px;border:1px solid var(--line);border-radius:var(--r-sm);padding:0 12px;background:var(--surface);width:100%;min-width:0}
+.input:focus,.select:focus{border-color:var(--brand);outline:3px solid var(--brand-100);outline-offset:0}
+.input.err{border-color:var(--bad)}
+.hint{font-size:13px;color:var(--ink-3)}
+.err-text{font-size:13px;color:var(--bad);font-weight:500}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md)}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.b-ok{background:var(--ok-50);color:var(--ok)}
+.b-warn{background:var(--warn-50);color:var(--warn)}
+.b-bad{background:var(--bad-50);color:var(--bad)}
+.b-info{background:var(--brand-50);color:var(--brand)}
+.b-neutral{background:var(--line-2);color:var(--ink-2)}
+.b-accent{background:var(--accent-50);color:var(--accent-700)}
+.banner{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;border-radius:var(--r-sm);font-size:14px}
+.banner.warn{background:var(--warn-50);color:#7A3A06}
+.banner.bad{background:var(--bad-50);color:#8A1F1A}
+.banner.ok{background:var(--ok-50);color:#11532D}
+.banner.info{background:var(--brand-50);color:var(--brand-700)}
+.toast-wrap{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:40;width:min(92%,440px);pointer-events:none}
+.toast{background:var(--ink);color:#fff;padding:12px 16px;border-radius:10px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.2);animation:tin .18s ease-out}
+.toast.bad{background:var(--bad)}
+.toast.ok{background:var(--ok)}
+@keyframes tin{from{transform:translateY(8px);opacity:.4}to{transform:none;opacity:1}}
+.modal-bg{position:fixed;inset:0;background:rgba(14,22,33,.5);display:flex;align-items:center;justify-content:center;z-index:45;padding:16px}
+.modal{background:var(--surface);border-radius:var(--r-lg);padding:24px;max-width:420px;width:100%;display:flex;flex-direction:column;gap:14px}
+.modal h3{font-size:18px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.spread{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.stack{display:flex;flex-direction:column;gap:12px}
+.muted{color:var(--ink-3)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.tbl-wrap{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-size:12px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:12px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+.tbl tr.sel td{background:var(--brand-50)}
+.tbl tr.click{cursor:pointer}
+.tbl tr.click:hover td{background:#F7FAFC}
+.copy{border:0;background:var(--brand-50);color:var(--brand);font-weight:600;font-size:13px;padding:6px 10px;border-radius:6px;cursor:pointer}
+
+/* ---------- Customer ---------- */
+.c-head{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.c-head-in{display:flex;align-items:center;gap:24px;padding:0 32px;height:68px;max-width:1200px;margin:0 auto}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px;color:var(--brand);text-decoration:none;cursor:pointer;letter-spacing:-.01em}
+.logo-mark{width:36px;height:36px;border-radius:8px;background:#B3261E;display:grid;place-items:center;font-family:'Noto Serif SC','Songti SC',serif;font-size:21px;font-weight:700;color:#FFF7E6;box-shadow:inset 0 0 0 2px #B3261E,inset 0 0 0 3.5px #F3D9A4}
+.logo small{font-family:'Noto Serif SC','Songti SC',serif;font-size:12px;color:var(--accent-700);font-weight:600;margin-left:2px}
+.c-nav{display:flex;gap:4px;margin-left:auto;align-items:center}
+.c-nav a{padding:8px 12px;border-radius:8px;color:var(--ink-2);text-decoration:none;font-weight:500;font-size:14px;cursor:pointer}
+.c-nav a:hover{background:var(--line-2);color:var(--ink)}
+.c-burger{display:none;margin-left:auto;border:1px solid var(--line);background:var(--surface);border-radius:8px;width:44px;height:44px;cursor:pointer}
+.c-main{max-width:1200px;margin:0 auto;padding:28px 32px 96px}
+.wa-fab{position:absolute;right:20px;bottom:20px;z-index:25;background:#1F8A4C;color:#fff;border-radius:999px;padding:0 18px;height:48px;display:flex;align-items:center;gap:8px;font-weight:600;text-decoration:none;box-shadow:0 8px 20px rgba(31,138,76,.35);font-size:14px}
+.hero{background:var(--brand);color:#fff;border-radius:var(--r-lg);padding:40px;display:grid;grid-template-columns:1fr;gap:24px;position:relative;overflow:hidden}
+.hero h1{font-size:34px;line-height:1.15;max-width:18ch;letter-spacing:-.02em}
+.hero p{margin:0;color:#CFE6DF;max-width:52ch}
+.hero-road{position:absolute;right:-20px;top:24px;opacity:.16}
+.search-card{background:var(--surface);color:var(--ink);border-radius:var(--r-md);padding:8px 20px 20px;position:relative;z-index:1}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.tabs button{border:0;background:transparent;padding:14px 16px;font-weight:600;color:var(--ink-3);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;font-size:15px}
+.tabs button[aria-selected="true"]{color:var(--brand);border-bottom-color:var(--brand)}
+.search-grid{display:grid;grid-template-columns:1.2fr auto 1.2fr 1fr .8fr auto;gap:12px;align-items:end}
+.swap{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);cursor:pointer;display:grid;place-items:center;color:var(--brand)}
+.stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:var(--r-sm);height:44px;background:var(--surface)}
+.stepper button{width:40px;height:100%;border:0;background:transparent;font-size:18px;color:var(--brand);cursor:pointer}
+.stepper button:disabled{color:#B5C0CB;cursor:not-allowed}
+.stepper span{flex:1;text-align:center;font-weight:600}
+.feat{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:28px}
+.feat .card{padding:18px}
+.feat h3{font-size:15px;margin:10px 0 4px}
+.feat p{margin:0;font-size:14px;color:var(--ink-2)}
+.ico{width:36px;height:36px;border-radius:10px;background:var(--brand-50);display:grid;place-items:center;color:var(--brand)}
+.sec-title{font-size:20px;margin:36px 0 14px;font-weight:700}
+.promo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.promo{padding:0;overflow:hidden}
+.promo .art{height:96px;display:flex;align-items:flex-end;padding:14px;color:#fff;font-weight:700;font-size:20px}
+.promo .body{padding:14px 16px}
+.promo .body p{margin:4px 0 0;font-size:13px;color:var(--ink-2)}
+.progress{display:flex;gap:6px;margin-bottom:20px;align-items:center;flex-wrap:wrap;font-size:13px}
+.progress span{display:flex;align-items:center;gap:6px;color:var(--ink-3);font-weight:500}
+.progress span b{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--line);color:var(--ink-2);font-size:12px}
+.progress span.on{color:var(--brand);font-weight:600}
+.progress span.on b{background:var(--brand);color:#fff}
+.progress span.done b{background:var(--ok);color:#fff}
+.progress i{width:22px;height:1px;background:var(--line)}
+.sum-bar{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:14px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.sum-bar .route{font-weight:700;font-size:17px}
+.dates{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin:16px 0}
+.date{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-sm);padding:8px 4px;text-align:center;cursor:pointer;font-size:13px}
+.date b{display:block;font-size:14px}
+.date small{color:var(--ok);font-weight:600}
+.date[aria-pressed="true"]{border-color:var(--brand);background:var(--brand-50);box-shadow:inset 0 0 0 1px var(--brand)}
+.res-layout{display:grid;grid-template-columns:240px 1fr;gap:20px;align-items:start}
+.filters{padding:16px;display:flex;flex-direction:column;gap:16px}
+.filters h4{margin:0 0 8px;font-size:13px;color:var(--ink-2)}
+.check{display:flex;gap:10px;align-items:center;font-size:14px;min-height:32px;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--brand)}
+.sched{display:grid;grid-template-columns:1.6fr 1fr auto;gap:16px;padding:18px 20px;align-items:center}
+.sched + .sched{margin-top:12px}
+.sched.closed{background:#F7F9FB}
+.sched.closed .time{color:var(--ink-3)}
+.time{font-size:22px;font-weight:700;letter-spacing:-.01em}
+.time-line{display:flex;align-items:center;gap:12px}
+.time-line .dur{flex:1;display:flex;flex-direction:column;align-items:center;font-size:12px;color:var(--ink-3);min-width:60px}
+.time-line .dur i{display:block;width:100%;height:2px;background:repeating-linear-gradient(90deg,var(--line) 0 6px,transparent 6px 10px);margin-top:4px}
+.price{font-size:20px;font-weight:700;color:var(--ink);text-align:right}
+.price small{display:block;font-size:12px;color:var(--ink-3);font-weight:500}
+.pts{font-size:13px;color:var(--ink-2)}
+.facs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.empty{padding:48px 24px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.empty h3{font-size:18px}
+.empty p{margin:0;color:var(--ink-2);max-width:44ch}
+
+/* Seat map */
+.seat-layout{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start}
+.bus{padding:20px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.bus-body{border:2px solid var(--line);border-radius:28px 28px 14px 14px;padding:18px 16px 16px;background:#FBFCFD}
+.bus-front{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:11px;color:var(--ink-3);font-weight:600;gap:8px}
+.wheel{width:40px;height:40px;border-radius:50%;border:3px solid var(--ink-3);display:grid;place-items:center}
+.door{border:1px dashed var(--ink-3);border-radius:6px;padding:6px 8px}
+.grid-seats{display:grid;grid-template-columns:repeat(2,48px) 28px repeat(2,48px);gap:8px}
+.seat{width:48px;height:48px;border-radius:10px 10px 6px 6px;border:2px solid var(--line);background:var(--surface);font-size:12px;font-weight:700;cursor:pointer;display:grid;place-items:center;position:relative;color:var(--ink-2);transition:background .12s}
+.seat.vip{border-color:#B98A1E;border-style:double;border-width:3px}
+.seat:hover:not(:disabled){border-color:var(--brand);color:var(--brand)}
+.seat.mine{background:var(--accent);border-color:#A97A10;color:#1D1300}
+.seat.held{background:repeating-linear-gradient(135deg,#E9EEF3 0 5px,#D5DDE6 5px 10px);color:var(--ink-3);cursor:not-allowed;border-color:#C9D3DD}
+.seat.taken{background:#C3CDD7;border-color:#C3CDD7;color:#fff;cursor:not-allowed}
+.seat:disabled{cursor:not-allowed}
+.seat.flash{animation:flash .6s ease-out 2}
+@keyframes flash{50%{box-shadow:0 0 0 4px var(--bad)}}
+.aisle{width:28px}
+.rowno{font-size:11px;color:var(--ink-3);display:grid;place-items:center}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--ink-2);justify-content:center}
+.legend span{display:flex;gap:6px;align-items:center}
+.legend i{width:18px;height:18px;border-radius:5px;border:2px solid var(--line);display:inline-block;background:var(--surface)}
+.legend i.mine{background:var(--accent);border-color:#A97A10}
+.legend i.held{background:repeating-linear-gradient(135deg,#E9EEF3 0 3px,#D5DDE6 3px 6px);border-color:#C9D3DD}
+.legend i.taken{background:#C3CDD7;border-color:#C3CDD7}
+.legend i.vip{border-style:double;border-width:3px;border-color:#B98A1E}
+.side-panel{padding:20px;display:flex;flex-direction:column;gap:14px;position:sticky;top:84px}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:14px}
+.kv span:first-child{color:var(--ink-2)}
+.kv.total{font-size:17px;font-weight:700;border-top:1px solid var(--line);padding-top:12px}
+.timer{display:flex;align-items:center;gap:10px;background:var(--accent-50);border:1px solid #F3D49B;color:var(--accent-700);border-radius:var(--r-sm);padding:10px 12px;font-size:14px;font-weight:500}
+.timer b{font-family:var(--mono);font-size:16px}
+.timer.low{background:var(--bad-50);border-color:#F0C3C0;color:var(--bad)}
+.bottom-bar{display:none}
+
+/* Form & payment */
+.two-col{display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start}
+.form-card{padding:20px;display:flex;flex-direction:column;gap:16px}
+.form-card h2{font-size:17px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pax-block{border:1px solid var(--line);border-radius:var(--r-sm);padding:14px;display:flex;flex-direction:column;gap:10px}
+.pax-block .spread b{font-size:14px}
+.amount{font-family:var(--mono);font-size:34px;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+.amount mark{background:var(--accent);color:#1D1300;border-radius:6px;padding:0 4px}
+.drop{border:2px dashed var(--line);border-radius:var(--r-md);padding:24px;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center;background:#FAFCFD;cursor:pointer}
+.drop.err{border-color:var(--bad);background:var(--bad-50)}
+.drop.has{border-style:solid;border-color:var(--ok);background:var(--ok-50)}
+.steps-list{margin:0;padding-left:20px;font-size:14px;color:var(--ink-2);display:flex;flex-direction:column;gap:6px}
+.status-hero{padding:28px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.status-hero h2{font-size:22px}
+
+/* E-ticket */
+.ticket{max-width:720px;margin:0 auto;display:grid;grid-template-columns:1fr 220px;overflow:hidden}
+.ticket .main{padding:24px;display:flex;flex-direction:column;gap:16px;border-right:2px dashed var(--line)}
+.ticket .qr{padding:24px;display:flex;flex-direction:column;align-items:center;gap:10px;background:#FBFCFD}
+.t-route{display:flex;align-items:center;gap:16px}
+.t-route div b{display:block;font-size:24px}
+.t-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:13px}
+.t-meta span{display:block;color:var(--ink-3)}
+.t-meta b{font-size:15px}
+.booking-code{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.08em;color:var(--brand)}
+
+/* Cargo */
+.koli{display:grid;grid-template-columns:40px repeat(4,1fr) 44px;gap:10px;align-items:end}
+.koli .no{height:44px;display:grid;place-items:center;font-weight:700;color:var(--ink-3)}
+.calc-res{padding:20px;display:flex;flex-direction:column;gap:12px;position:sticky;top:84px}
+.wt{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:13px;padding:10px 12px;border:1px solid var(--line-2);border-radius:var(--r-sm)}
+.wt b{font-size:14px}
+.switch{display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:600;font-size:14px}
+.switch input{appearance:none;width:44px;height:26px;border-radius:999px;background:#C3CDD7;position:relative;cursor:pointer;transition:background .15s;margin:0}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s}
+.switch input:checked{background:var(--brand)}
+.switch input:checked::after{left:21px}
+.resi-box{display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center;padding:32px}
+.resi-no{font-family:var(--mono);font-size:28px;font-weight:600;letter-spacing:.06em}
+.timeline{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.timeline li{display:grid;grid-template-columns:24px 1fr;gap:14px;position:relative;padding-bottom:22px}
+.timeline li::before{content:"";position:absolute;left:11px;top:22px;bottom:0;width:2px;background:var(--line)}
+.timeline li:last-child::before{display:none}
+.timeline .dot{width:24px;height:24px;border-radius:50%;background:var(--line);border:4px solid var(--surface);box-shadow:0 0 0 1px var(--line);margin-top:2px}
+.timeline li.now .dot{background:var(--brand);box-shadow:0 0 0 4px var(--brand-100)}
+.timeline li.ok .dot{background:var(--ok);box-shadow:0 0 0 4px var(--ok-50)}
+.timeline h4{margin:0;font-size:15px}
+.timeline p{margin:2px 0 0;font-size:13px;color:var(--ink-2)}
+.proof{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap}
+.proof figure{margin:0;border:1px solid var(--line);border-radius:8px;padding:6px;background:#fff;font-size:11px;color:var(--ink-3);text-align:center}
+
+/* ---------- Admin ---------- */
+.a-wrap{display:grid;grid-template-columns:232px 1fr;min-height:720px}
+.a-side{background:#0B3B32;color:#D3E6E0;padding:18px 12px;display:flex;flex-direction:column;gap:4px}
+.a-side .logo{color:#fff;padding:4px 8px 16px}
+.a-side .logo small{color:#E3C47A}
+.a-side h5{margin:14px 10px 6px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#8FB8AE;font-weight:600}
+.a-side a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:#D3E6E0;text-decoration:none;font-size:14px;font-weight:500;cursor:pointer}
+.a-side a:hover{background:#12524A;color:#fff}
+.a-side a.on{background:#fff;color:var(--brand)}
+.a-side a .cnt{margin-left:auto;background:var(--accent);color:#1D1300;border-radius:999px;font-size:11px;font-weight:700;padding:1px 8px}
+.a-main{display:flex;flex-direction:column;min-width:0}
+.a-top{height:60px;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 24px}
+.a-top h1{font-size:18px;margin-right:auto}
+.a-top .select{height:36px;width:auto;font-size:13px}
+.a-content{padding:24px;display:flex;flex-direction:column;gap:20px}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.kpi{padding:14px 16px;display:flex;flex-direction:column;gap:4px;border-left:4px solid transparent}
+.kpi span{font-size:12px;color:var(--ink-3);font-weight:600}
+.kpi b{font-size:22px;letter-spacing:-.01em}
+.kpi small{font-size:12px;color:var(--ink-2)}
+.kpi.warn{border-left-color:var(--warn)}
+.kpi.bad{border-left-color:var(--bad)}
+.dash-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:16px}
+.dash-grid.lay{grid-template-columns:1fr 320px}
+.panel{padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.panel h2{font-size:16px}
+.occ{display:grid;grid-template-columns:110px 1fr 46px;gap:10px;align-items:center;font-size:13px}
+.occ .bar{height:8px;background:var(--line-2);border-radius:999px;overflow:hidden}
+.occ .bar i{display:block;height:100%;background:var(--brand);border-radius:999px}
+.alert{display:grid;grid-template-columns:4px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line-2);font-size:14px}
+.alert:last-child{border-bottom:0}
+.alert i{height:100%;min-height:36px;border-radius:2px;background:var(--warn)}
+.alert i.bad{background:var(--bad)}
+.verif{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;align-items:start}
+.age{font-weight:600}
+.age.late{color:var(--bad)}
+.proof-img{border:1px solid var(--line);border-radius:var(--r-sm);background:#F6F8FA;padding:16px;display:flex;justify-content:center}
+.match{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.match .card{padding:14px 16px;border-top:4px solid var(--ok)}
+.match .card.r{border-top-color:var(--warn)}
+.match .card.x{border-top-color:var(--bad)}
+.match b{font-size:26px;display:block}
+.scan-panel{padding:20px;display:flex;flex-direction:column;gap:12px}
+.scan-view{height:180px;border-radius:var(--r-md);background:#0E1621;position:relative;display:grid;place-items:center;color:#9AA8B8;font-size:13px;overflow:hidden}
+.scan-view::before{content:"";position:absolute;inset:28px 48px;border:2px solid rgba(255,255,255,.7);border-radius:12px}
+.scan-view::after{content:"";position:absolute;left:48px;right:48px;height:2px;background:var(--accent);top:50%;box-shadow:0 0 12px var(--accent)}
+.scan-result{border-radius:var(--r-md);padding:14px 16px;font-weight:600;display:flex;gap:10px;align-items:center}
+.scan-result.ok{background:var(--ok);color:#fff}
+.scan-result.bad{background:var(--bad);color:#fff}
+.scan-list{list-style:none;margin:0;padding:0;font-size:14px}
+.scan-list li{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line-2)}
+.cap{height:10px;border-radius:999px;background:var(--line-2);overflow:hidden}
+.cap i{display:block;height:100%;background:var(--warn)}
+.phone-ui{max-width:380px;margin:0 auto;width:100%}
+.layout-grid{display:grid;grid-template-columns:repeat(5,44px);gap:6px;justify-content:center}
+.lcell{width:44px;height:44px;border-radius:8px;border:1px dashed var(--line);background:#fff;font-size:11px;font-weight:700;cursor:pointer;color:var(--ink-3)}
+.lcell.k{border:2px solid var(--brand);color:var(--brand)}
+.lcell.kv{border:3px double #6E93B8;color:var(--brand)}
+.lcell.l{background:transparent;border-color:transparent}
+.lcell.t{background:#E7F0F8;border-style:solid;color:var(--brand)}
+.lcell.p{background:#FDF1E3;border:1px solid #F0C99B;color:var(--warn)}
+.lcell.s{background:#E8EBEF;border:1px solid #C3CDD7;color:var(--ink-2)}
+.otp{display:flex;gap:8px}
+.otp input{width:48px;height:56px;text-align:center;font-family:var(--mono);font-size:22px;border:1px solid var(--line);border-radius:var(--r-sm)}
+.login{max-width:420px;margin:72px auto;padding:32px;display:flex;flex-direction:column;gap:16px}
+.denied{padding:56px 24px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.matrix td,.matrix th{text-align:center}
+.matrix td:first-child,.matrix th:first-child{text-align:left}
+.matrix input{width:18px;height:18px;accent-color:var(--brand)}
+canvas.sig{border:1px dashed var(--ink-3);border-radius:var(--r-sm);background:#fff;touch-action:none;width:100%;height:140px}
+
+
+/* Master data */
+.a-tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.a-tabs button{border:0;background:transparent;padding:10px 14px;font-weight:600;color:var(--ink-3);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap;font-size:14px}
+.a-tabs button[aria-selected="true"]{color:var(--brand);border-bottom-color:var(--brand)}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.toolbar .input{height:38px;max-width:260px}
+.drawer-bg{position:fixed;inset:0;background:rgba(14,22,33,.45);z-index:45;display:flex;justify-content:flex-end}
+.drawer{background:var(--surface);width:min(440px,100%);height:100%;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:14px;box-shadow:-12px 0 32px rgba(0,0,0,.18)}
+.drawer h3{font-size:18px}
+.drawer .foot{margin-top:auto;display:flex;gap:10px;justify-content:flex-end;padding-top:12px;border-top:1px solid var(--line)}
+.daychips{display:flex;gap:6px;flex-wrap:wrap}
+.daychips label{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer}
+.daychips input{accent-color:var(--brand)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.cal div{border:1px solid var(--line);border-radius:var(--r-sm);padding:8px;font-size:12px;display:flex;flex-direction:column;gap:2px;min-height:72px}
+.cal div b{font-size:14px}
+.cal div.up{background:var(--accent-50);border-color:#F3D49B}
+.cal div.hi{background:var(--bad-50);border-color:#F0C3C0}
+.cal small{color:var(--ink-3)}
+.prio{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:6px;background:var(--brand-50);color:var(--brand);font-weight:700;font-size:12px}
+.rpt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@container app (max-width: 860px){ .rpt-grid{grid-template-columns:1fr 1fr} .cal{grid-template-columns:repeat(4,1fr)} }
+
+/* ---------- Container queries: tablet & ponsel ---------- */
+@container app (max-width: 1100px){
+  .kpis{grid-template-columns:repeat(3,1fr)}
+  .search-grid{grid-template-columns:1fr auto 1fr;}
+  .search-grid .f-date,.search-grid .f-pax{grid-column:span 1}
+  .search-grid .f-go{grid-column:1 / -1}
+}
+@container app (max-width: 860px){
+  .a-wrap{grid-template-columns:1fr}
+  .a-side{flex-direction:row;overflow-x:auto;padding:8px;gap:4px}
+  .a-side .logo,.a-side h5{display:none}
+  .a-side a{white-space:nowrap}
+  .dash-grid,.verif,.two-col,.seat-layout,.res-layout{grid-template-columns:1fr}
+  .side-panel,.calc-res{position:static}
+  .feat{grid-template-columns:repeat(2,1fr)}
+  .promo-grid{grid-template-columns:1fr 1fr}
+  .match{grid-template-columns:1fr}
+}
+@container app (max-width: 600px){
+  body{font-size:16px}
+  .c-head-in{padding:0 16px;height:60px}
+  .c-nav{display:none}
+  .c-nav.open{display:flex;position:absolute;top:60px;left:0;right:0;flex-direction:column;align-items:stretch;background:var(--surface);border-bottom:1px solid var(--line);padding:8px}
+  .c-burger{display:grid;place-items:center}
+  .c-main{padding:16px 16px 140px}
+  .hero{padding:24px 16px;border-radius:var(--r-md)}
+  .hero h1{font-size:26px}
+  .search-card{padding:4px 14px 16px}
+  .search-grid{grid-template-columns:1fr 44px}
+  .search-grid .f-from,.search-grid .f-to{grid-column:1}
+  .search-grid .swap{grid-column:2;grid-row:1 / span 2;align-self:center}
+  .search-grid .f-date,.search-grid .f-pax,.search-grid .f-go{grid-column:1 / -1}
+  .feat,.promo-grid{grid-template-columns:1fr}
+  .dates{grid-template-columns:repeat(4,1fr)}
+  .dates .date:nth-child(n+5){display:none}
+  .filters{display:none}
+  .sched{grid-template-columns:1fr auto;padding:16px}
+  .sched .act{grid-column:1 / -1}
+  .sched .act .btn{width:100%}
+  .time{font-size:19px}
+  .side-panel{display:none}
+  .bottom-bar{display:flex;position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:12px 16px 16px;flex-direction:column;gap:10px;z-index:30}
+  .bus{padding:12px}
+  .grid-seats{grid-template-columns:repeat(2,44px) 20px repeat(2,44px);gap:7px}
+  .seat{width:44px;height:44px}
+  .fgrid{grid-template-columns:1fr}
+  .amount{font-size:28px}
+  .ticket{grid-template-columns:1fr}
+  .ticket .main{border-right:0;border-bottom:2px dashed var(--line)}
+  .t-meta{grid-template-columns:1fr 1fr}
+  .koli{grid-template-columns:1fr 1fr;padding-bottom:12px;border-bottom:1px solid var(--line-2)}
+  .koli .no{grid-column:1 / -1;height:auto;place-items:start}
+  .a-top{padding:0 12px}
+  .a-content{padding:16px}
+  .kpis{grid-template-columns:1fr 1fr}
+  .wa-fab{bottom:96px;right:16px;padding:0 14px}
+  .wa-fab .t{display:none}
+  .toast-wrap{bottom:120px}
+}
+</style>
+</head>
+<body>
+<header class="shell-bar">
+  <div class="shell-title">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F5A524" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="3"/><path d="M3 11h18M7 17v3M17 17v3"/></svg>
+    Prototype Shunlu 顺路 <small>Data contoh · 13 Nov 2026</small>
+  </div>
+  <div class="seg" role="group" aria-label="Sisi aplikasi">
+    <button type="button" id="side-cust" aria-pressed="true">Customer</button>
+    <button type="button" id="side-admin" aria-pressed="false">Back Office</button>
+  </div>
+  <div class="seg" role="group" aria-label="Perangkat">
+    <button type="button" id="dev-desk" aria-pressed="true">Desktop</button>
+    <button type="button" id="dev-mob" aria-pressed="false">Ponsel 360</button>
+  </div>
+  <label class="sr" for="screen-pick">Pilih layar</label>
+  <select id="screen-pick" class="shell-select"></select>
+</header>
+<div class="shell-states" id="states"></div>
+<main class="stage"><div class="frame" id="frame"></div></main>
+<div class="notes" id="notes"></div>
+
+<script>
+/* ======================= Data contoh ======================= */
+const rp = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+const pad = n => String(n).padStart(2,'0');
+const mmss = ms => { const s = Math.max(0, Math.ceil(ms/1000)); return pad(Math.floor(s/60)) + ':' + pad(s%60); };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const CITIES = ['Jakarta','Bandung','Bekasi','Cirebon','Tasikmalaya','Garut'];
+const WEEKEND = 1.2; // aturan harga akhir pekan +20%
+const SCHEDULES = [
+  {id:'J1', dep:'05:30', arr:'08:15', dur:'2j 45m', from:'Pool Cawang', to:'Pool Pasteur', kelas:'Eksekutif', fas:['AC','Toilet','USB'], sisa:12, base:150000},
+  {id:'J2', dep:'07:00', arr:'09:45', dur:'2j 45m', from:'Pool Cawang', to:'Pool Pasteur', kelas:'VIP + Eksekutif', fas:['AC','Toilet','USB','Snack'], sisa:26, base:150000, vip:185000, extraStop:'Bekasi Timur 07:40'},
+  {id:'J3', dep:'09:30', arr:'12:15', dur:'2j 45m', from:'Pool Cawang', to:'Pool Pasteur', kelas:'Eksekutif', fas:['AC','Toilet'], sisa:1, base:150000},
+  {id:'J4', dep:'13:00', arr:'15:45', dur:'2j 45m', from:'Pool Cawang', to:'Pool Pasteur', kelas:'Eksekutif', fas:['AC','Toilet','USB'], sisa:30, base:150000},
+  {id:'J5', dep:'19:00', arr:'21:30', dur:'2j 30m', from:'Pool Cawang', to:'Pool Pasteur', kelas:'VIP + Eksekutif', fas:['AC','Toilet','USB','Snack'], sisa:18, base:150000, vip:185000}
+];
+const DATES = [
+  {d:'Rab',n:'11 Nov',p:150000},{d:'Kam',n:'12 Nov',p:150000},{d:'Jum',n:'13 Nov',p:150000},
+  {d:'Sab',n:'14 Nov',p:180000,on:true},{d:'Min',n:'15 Nov',p:180000},{d:'Sen',n:'16 Nov',p:150000},{d:'Sel',n:'17 Nov',p:150000}
+];
+const ROWS = 10, COLS = ['A','B','C','D'];
+const TAKEN = new Set(['1A','2C','3B','3C','4D','5A','5B','6C','7D','8A','9B','9C','10D','4A','2D']);
+
+/* ======================= State ======================= */
+const S = {
+  side:'cust', device:'desk', screen:'beranda', st:{}, role:'super',
+  tab:'tiket', from:'Jakarta', to:'Bandung', pax:2,
+  sched:'J2', seats:[], held:new Set(['6A','8C']), seatDeadline:null, conflictNext:false, offline:false,
+  promo:false, uniq:247, payDeadline:null, payState:'normal', file:null, fileErr:'',
+  koli:[{w:5,p:40,l:40,t:40},{w:3,p:30,l:20,t:15}], cFrom:'Jakarta', cTo:'Bandung', svc:'Reguler', ins:true, nilai:2000000,
+  verif:null, queue:null, scanLog:[], scanRes:null, cargoAction:'muat', bagSisa:62, cargoScans:[], sigDone:false, photoDone:false,
+  layout:null, lMode:'k', boarded:new Set(['1B','1C','2A','2B'])
+};
+function resetQueue(){
+  S.queue = [
+    {code:'SL4R8T', name:'Hendra W.', sched:'Sab 14 Nov · 05:30 JKT–BDG', amount:360519, age:42, recon:'Cocok mutasi 14:21'},
+    {code:'SL9M2C', name:'Ayu L.', sched:'Sab 14 Nov · 07:00 JKT–BDG', amount:185312, age:34, recon:'Belum ada mutasi'},
+    {code:'SL7K2M', name:'Rina S.', sched:'Sab 14 Nov · 07:00 JKT–BDG', amount:360247, age:12, recon:'Cocok mutasi 14:52'},
+    {code:'SL2H6Q', name:'Bagus P.', sched:'Min 15 Nov · 13:00 JKT–BDG', amount:540108, age:3, recon:'Belum ada mutasi'}
+  ];
+  S.verif = 'SL4R8T';
+}
+resetQueue();
+function initLayout(){
+  S.layout = [];
+  for(let r=0;r<12;r++){ const row=[]; for(let c=0;c<5;c++){ row.push(c===2?'l':'k'); } S.layout.push(row); }
+  S.layout[0] = ['s','l','l','l','p'];
+  S.layout[1] = ['kv','kv','l','kv','kv'];
+  S.layout[2] = ['kv','kv','l','kv','kv'];
+  S.layout[11] = ['k','k','l','t','t'];
+}
+initLayout();
+
+/* ======================= Utilitas UI ======================= */
+const $ = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+function toast(msg, kind=''){
+  const w = $('#toasts'); if(!w) return;
+  const t = document.createElement('div'); t.className = 'toast ' + kind; t.setAttribute('role','status'); t.textContent = msg;
+  w.appendChild(t); setTimeout(()=>t.remove(), 3600);
+}
+function modal(html){
+  const f = $('#frame'); const bg = document.createElement('div'); bg.className='modal-bg'; bg.id='modal';
+  bg.innerHTML = '<div class="modal" role="dialog" aria-modal="true">' + html + '</div>'; f.appendChild(bg);
+  const first = bg.querySelector('button, input, textarea'); if(first) first.focus();
+  return bg;
+}
+function closeModal(){ const m = $('#modal'); if(m) m.remove(); }
+async function copyText(t, label){
+  try{ await navigator.clipboard.writeText(t); toast(label + ' disalin', 'ok'); }catch(e){ toast('Salin manual: ' + t); }
+}
+const IC = {
+  bus:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="3"/><path d="M3 11h18M7 17v3M17 17v3"/></svg>',
+  swap:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 4v16M4 7l3-3 3 3M17 20V4M14 17l3 3 3-3"/></svg>',
+  wa:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12a9 9 0 0 1-13.4 7.8L3 21l1.3-4.4A9 9 0 1 1 21 12z"/><path d="M9 9.5c.5 2.5 2.5 4.5 5 5l1.2-1.3 2 1-.4 1.6c-3.8.4-8.6-4.4-8.2-8.2l1.6-.4 1 2z"/></svg>',
+  shield:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+  seat:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h8a2 2 0 0 1 2 2v8H6z"/><path d="M4 13h14v4H4zM6 17v4M16 17v4"/></svg>',
+  box:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8M12 13v8"/></svg>',
+  pin:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>',
+  menu:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>',
+  up:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>',
+  lock:'<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>'
+};
+const logoHtml = (onclick='beranda') => `<a class="logo" data-go="${onclick}" aria-label="Shunlu 顺路"><span class="logo-mark" aria-hidden="true">顺</span>Shunlu<small>顺路</small></a>`;
+
+/* ======================= Harga ======================= */
+const schedById = id => SCHEDULES.find(s=>s.id===id);
+const seatClass = id => parseInt(id,10) <= 2 ? 'VIP' : 'Eksekutif';
+function seatPrice(id){ const s = schedById(S.sched); const base = (seatClass(id)==='VIP' && s.vip) ? s.vip : s.base; return base*WEEKEND; }
+function subtotal(){ return S.seats.reduce((a,id)=>a+seatPrice(id),0); }
+function total(){ return subtotal() - (S.promo?20000:0); }
+
+/* ======================= Customer: layout ======================= */
+function custLayout(inner, opts={}){
+  return `<header class="c-head"><div class="c-head-in">${logoHtml()}
+    <nav class="c-nav" id="cnav" aria-label="Menu utama">
+      <a data-go="beranda">Tentang</a><a data-go="beranda">Layanan</a><a data-go="beranda">Promo</a><a data-go="beranda">FAQ</a><a data-go="lacak">Lacak Kiriman</a><a data-go="ongkir">Cek Ongkir</a>
+      <a class="btn btn-secondary btn-sm" data-go="beranda" style="margin-left:8px">Masuk</a>
+    </nav>
+    <button class="c-burger" id="burger" aria-label="Buka menu" aria-expanded="false">${IC.menu}</button>
+  </div></header>
+  <div class="c-main">${inner}</div>
+  ${opts.noFab ? '' : `<a class="wa-fab" href="https://wa.me/6281200000000?text=${encodeURIComponent(opts.waText || 'Halo CS Shunlu, saya butuh bantuan.')}" target="_blank" rel="noopener">${IC.wa}<span class="t">Butuh bantuan? Chat CS</span></a>`}
+  ${opts.bottom || ''}`;
+}
+function progress(step){
+  const names = ['Jadwal','Kursi','Data','Bayar','E-ticket'];
+  return '<div class="progress" aria-label="Langkah pemesanan">' + names.map((n,i)=>{
+    const c = i+1 < step ? 'done' : i+1 === step ? 'on' : '';
+    return (i?'<i></i>':'') + `<span class="${c}"><b>${i+1 < step ? '✓' : i+1}</b>${n}</span>`;
+  }).join('') + '</div>';
+}
+
+/* ======================= Screens ======================= */
+const SCREENS = {};
+
+/* L-01 Beranda */
+SCREENS.beranda = {
+  side:'cust', code:'L-01', title:'Beranda', refs:'FR-07, FR-09 · AB-05 · EX-18',
+  states:[{id:'normal',label:'Normal'},{id:'err',label:'Galat: asal = tujuan'}],
+  render(){
+    const st = S.st.beranda || 'normal';
+    const same = st==='err';
+    const opt = sel => CITIES.map(c=>`<option ${c===sel?'selected':''}>${c}</option>`).join('');
+    const tiket = `
+      <form class="search-grid" id="f-search" novalidate>
+        <div class="field f-from"><label for="from">Dari</label><select id="from" class="select">${opt(S.from)}</select></div>
+        <button type="button" class="swap" id="swap" aria-label="Tukar asal dan tujuan">${IC.swap}</button>
+        <div class="field f-to"><label for="to">Ke</label><select id="to" class="select ${same?'err':''}">${opt(same?S.from:S.to)}</select>${same?'<span class="err-text" id="to-err">Kota tujuan harus berbeda</span>':''}</div>
+        <div class="field f-date"><label for="date">Tanggal berangkat</label><input id="date" class="input" type="date" value="2026-11-14" min="2026-11-13" max="2027-01-12"></div>
+        <div class="field f-pax"><label id="pax-l">Penumpang</label><div class="stepper" role="group" aria-labelledby="pax-l"><button type="button" id="pax-minus" aria-label="Kurangi penumpang" ${S.pax<=1?'disabled':''}>−</button><span aria-live="polite">${S.pax}</span><button type="button" id="pax-plus" aria-label="Tambah penumpang" ${S.pax>=6?'disabled':''}>+</button></div>${S.pax>=6?'<span class="hint">Maksimal 6 kursi per pesanan</span>':''}</div>
+        <div class="field f-go"><button class="btn btn-primary" type="submit">Cari Jadwal</button></div>
+      </form>`;
+    const cargo = `
+      <form class="search-grid" id="f-track" style="grid-template-columns:1fr auto" novalidate>
+        <div class="field"><label for="resi-in">Nomor resi</label><input id="resi-in" class="input mono" placeholder="Contoh: SLC261113A7K" value="SLC261113A7K" maxlength="12"></div>
+        <div class="field"><button class="btn btn-primary" type="submit">Lacak Kiriman</button></div>
+      </form>
+      <p class="hint" style="margin:10px 0 0">Mau kirim barang? <a class="btn-text" style="padding:0;cursor:pointer;font-weight:600" data-go="ongkir">Cek ongkir dulu</a></p>`;
+    return custLayout(`
+      <section class="hero">
+        <svg class="hero-road" width="520" height="200" viewBox="0 0 520 200" aria-hidden="true"><path d="M0 170 C140 170 160 40 300 40 S460 120 520 60" fill="none" stroke="#fff" stroke-width="22" stroke-linecap="round"/><path d="M0 170 C140 170 160 40 300 40 S460 120 520 60" fill="none" stroke="#0F5C4D" stroke-width="3" stroke-dasharray="14 12"/></svg>
+        <div class="stack" style="gap:8px;position:relative"><h1>Searah jalan, sampai tujuan.</h1><p>顺路 · Tiket bus dengan pilih kursi sendiri, plus cargo yang ikut bus dan bisa dilacak sampai diterima.</p></div>
+        <div class="search-card">
+          <div class="tabs" role="tablist">
+            <button role="tab" id="tab-tiket" aria-selected="${S.tab==='tiket'}">Tiket Bus</button>
+            <button role="tab" id="tab-cargo" aria-selected="${S.tab==='cargo'}">Cargo</button>
+          </div>
+          ${S.tab==='tiket'?tiket:cargo}
+        </div>
+      </section>
+      <div class="feat">
+        <div class="card"><div class="ico">${IC.seat}</div><h3>Pilih kursi sendiri</h3><p>Peta kursi diperbarui langsung. Kursi Anda dikunci 10 menit.</p></div>
+        <div class="card"><div class="ico">${IC.shield}</div><h3>Penumpang terlindungi</h3><p>Harga tiket sudah termasuk iuran wajib Jasa Raharja.</p></div>
+        <div class="card"><div class="ico">${IC.box}</div><h3>Cargo terlacak</h3><p>Setiap koli dipindai di gudang dan di bus. Status masuk ke email Anda.</p></div>
+        <div class="card"><div class="ico">${IC.pin}</div><h3>Naik dari dekat</h3><p>Beberapa jadwal berhenti di Bekasi Timur dan pool lain di rute.</p></div>
+      </div>
+      <h2 class="sec-title">Promo berjalan</h2>
+      <div class="promo-grid">
+        <div class="card promo"><div class="art" style="background:linear-gradient(120deg,#0F5C4D,#1F8A73)">Hemat Rp20.000</div><div class="body"><b>HEMAT20</b><p>Semua rute, Senin–Kamis. Kuota 500 · s.d. 30 Nov 2026</p></div></div>
+        <div class="card promo"><div class="art" style="background:linear-gradient(120deg,#8A2A1E,#B3261E)">Kirim 3 koli, gratis asuransi</div><div class="body"><b>Cargo Reguler</b><p>Nilai barang s.d. Rp5.000.000 · s.d. 31 Des 2026</p></div></div>
+        <div class="card promo"><div class="art" style="background:linear-gradient(120deg,#11532D,#1F8A4C)">Member: isi data otomatis</div><div class="body"><b>Daftar gratis</b><p>Riwayat tiket dan resi di satu tempat</p></div></div>
+      </div>
+      <h2 class="sec-title">Kata penumpang</h2>
+      <div class="card" style="padding:18px 20px;display:flex;gap:24px;flex-wrap:wrap;align-items:center"><div><span class="num" style="font-size:32px;font-weight:700">4,7</span><span class="muted"> / 5 dari 1.284 rating</span></div><p style="margin:0;flex:1;min-width:220px;color:var(--ink-2)">“Bisa pilih kursi jendela dan e-ticket langsung masuk email.” — Penumpang rute Jakarta–Bandung</p></div>
+    `, {waText:'Halo CS Shunlu, saya mau tanya jadwal dan tiket.'});
+  },
+  mount(){
+    $('#tab-tiket').onclick = ()=>{S.tab='tiket';render();};
+    $('#tab-cargo').onclick = ()=>{S.tab='cargo';render();};
+    const f = $('#f-search');
+    if(f){
+      $('#from').onchange = e=>{S.from=e.target.value;};
+      $('#to').onchange = e=>{S.to=e.target.value; if(S.st.beranda==='err'){S.st.beranda='normal';render();}};
+      $('#swap').onclick = ()=>{const a=S.from;S.from=S.to;S.to=a;render();};
+      $('#pax-minus').onclick = ()=>{S.pax=Math.max(1,S.pax-1);render();};
+      $('#pax-plus').onclick = ()=>{S.pax=Math.min(6,S.pax+1);render();};
+      f.onsubmit = e=>{e.preventDefault(); S.from=$('#from').value; S.to=$('#to').value;
+        if(S.from===S.to){S.st.beranda='err';render();return;}
+        go('jadwal');};
+    }
+    const t = $('#f-track'); if(t) t.onsubmit = e=>{e.preventDefault(); const v=$('#resi-in').value.trim().toUpperCase(); S.st.lacak = v==='SLC261113A7K' ? 'jalan' : 'notfound'; go('lacak');};
+  }
+};
+
+/* L-04 Hasil cari */
+SCREENS.jadwal = {
+  side:'cust', code:'L-04', title:'Hasil cari jadwal', refs:'FR-15–17 · AB-04 · EX-03, EX-04',
+  states:[{id:'normal',label:'Normal'},{id:'closed',label:'Ada jadwal ditutup'},{id:'empty',label:'Kosong'}],
+  render(){
+    const st = S.st.jadwal || 'normal';
+    const head = `${progress(1)}
+      <div class="sum-bar"><span class="route">${esc(S.from)} → ${esc(S.to)}</span><span class="muted">Sab, 14 Nov 2026 · ${S.pax} penumpang</span><span class="badge b-accent">Tarif akhir pekan +20%</span><button class="btn btn-secondary btn-sm" data-go="beranda" style="margin-left:auto">Ubah</button></div>
+      <div class="dates" role="group" aria-label="Pilih tanggal lain">${DATES.map(d=>`<button class="date" aria-pressed="${!!d.on}"><span>${d.d}</span><b>${d.n}</b><small>${st==='empty'&&d.on?'—':rp(d.p).replace('Rp ','')}</small></button>`).join('')}</div>`;
+    if(st==='empty'){
+      return custLayout(head + `<div class="card empty"><div class="ico" style="width:56px;height:56px">${IC.bus}</div><h3>Belum ada jadwal untuk rute dan tanggal ini.</h3><p>Coba tanggal lain di atas. Jadwal terdekat tersedia Minggu, 15 Nov 2026.</p><button class="btn btn-secondary" id="tomorrow">Lihat jadwal 15 Nov</button></div>`);
+    }
+    const cards = SCHEDULES.map((s,i)=>{
+      const closed = st==='closed' && i<2;
+      const short = s.sisa < S.pax;
+      const price = s.base*WEEKEND;
+      let label = 'Pilih', note='';
+      if(closed){ note = '<span class="badge b-neutral">Penjualan online ditutup 2 jam sebelum berangkat</span>'; }
+      else if(short){ note = `<span class="badge b-bad">Sisa ${s.sisa} kursi</span>`; }
+      else if(s.sisa<=12){ note = `<span class="badge b-warn">Sisa ${s.sisa} kursi</span>`; }
+      else { note = `<span class="badge b-ok">${s.sisa} kursi tersedia</span>`; }
+      return `<article class="card sched ${closed?'closed':''}">
+        <div>
+          <div class="time-line"><span class="time num">${s.dep}</span><span class="dur">${s.dur}<i></i></span><span class="time num">${s.arr}</span></div>
+          <div class="pts">${s.from} → ${s.to}${s.extraStop?` · <b>juga naik di ${s.extraStop}</b>`:''}</div>
+          <div class="facs"><span class="badge b-info">${s.kelas}</span>${s.fas.map(f=>`<span class="badge b-neutral">${f}</span>`).join('')}</div>
+        </div>
+        <div class="stack" style="gap:6px;align-items:flex-end"><div class="price num">${rp(price)}${s.vip?`<small>VIP ${rp(s.vip*WEEKEND)}</small>`:'<small>per orang</small>'}</div>${note}</div>
+        <div class="act"><button class="btn btn-primary" data-sched="${s.id}" ${closed||short?'disabled':''}>${label}</button></div>
+      </article>`;
+    }).join('');
+    return custLayout(head + `<div class="res-layout">
+      <aside class="card filters" aria-label="Filter">
+        <div><h4>Jam berangkat</h4><label class="check"><input type="checkbox" checked> Pagi 04:00–11:59</label><label class="check"><input type="checkbox" checked> Siang 12:00–17:59</label><label class="check"><input type="checkbox" checked> Malam 18:00–23:59</label></div>
+        <div><h4>Kelas</h4><label class="check"><input type="checkbox" checked> Eksekutif</label><label class="check"><input type="checkbox" checked> VIP</label></div>
+        <div><h4>Urutkan</h4><select class="select" aria-label="Urutkan"><option>Paling awal</option><option>Termurah</option></select></div>
+      </aside>
+      <div>${cards}</div></div>`);
+  },
+  mount(){
+    $$('[data-sched]').forEach(b=>b.onclick=()=>{ if(S.sched!==b.dataset.sched){S.seats=[];} S.sched=b.dataset.sched; S.seatDeadline=null; go('kursi'); });
+    const t=$('#tomorrow'); if(t) t.onclick=()=>{S.st.jadwal='normal';render();};
+  }
+};
+
+/* L-05 Pilih kursi */
+SCREENS.kursi = {
+  side:'cust', code:'L-05', title:'Pilih kursi', refs:'FR-18–20 · AB-05, AB-07, AB-16 · EX-01, EX-02',
+  states:[{id:'normal',label:'Normal (real-time aktif)'},{id:'conflict',label:'Bentrok: klik kursi berikutnya'},{id:'offline',label:'Koneksi terputus'},{id:'max',label:'Batas 6 kursi'},{id:'timeout',label:'Waktu habis'}],
+  enter(){
+    if(!S.seatDeadline) S.seatDeadline = Date.now() + 10*60*1000;
+    const st = S.st.kursi || 'normal';
+    S.conflictNext = st==='conflict';
+    S.offline = st==='offline';
+    if(st==='max'){ S.pax = 6; S.seats = ['3A','3D','4B','4C','5C','5D']; }
+    if(st==='timeout'){ S.seatDeadline = Date.now() + 1500; }
+  },
+  seatMap(){
+    let h = '';
+    for(let r=1;r<=ROWS;r++){
+      COLS.forEach((c,ci)=>{
+        if(ci===2) h += `<span class="rowno" aria-hidden="true">${r}</span>`;
+        const id = r + c;
+        const vip = r<=2;
+        let cls = 'seat' + (vip?' vip':''), state='tersedia', dis='';
+        if(TAKEN.has(id)){cls+=' taken';state='terisi';dis='disabled';}
+        else if(S.held.has(id)){cls+=' held';state='sedang dipilih penumpang lain';dis='aria-disabled="true"';}
+        else if(S.seats.includes(id)){cls+=' mine';state='pilihan Anda';}
+        const pos = (c==='A'||c==='D')?'jendela':'lorong';
+        h += `<button class="${cls}" data-seat="${id}" ${dis} aria-label="Kursi ${id}, ${pos}, ${vip?'VIP':'Eksekutif'}, ${state}" aria-pressed="${S.seats.includes(id)}">${id}</button>`;
+      });
+    }
+    return h;
+  },
+  summary(){
+    const s = schedById(S.sched);
+    return `<div class="kv"><span>Jadwal</span><b>Sab 14 Nov · ${s.dep}</b></div>
+      <div class="kv"><span>Kursi</span><b>${S.seats.length?S.seats.join(', '):'Belum dipilih'}</b></div>
+      ${S.seats.map(id=>`<div class="kv"><span>${id} · ${seatClass(id)}</span><span class="num">${rp(seatPrice(id))}</span></div>`).join('')}
+      <div class="kv total"><span>Total</span><span class="num">${rp(subtotal())}</span></div>`;
+  },
+  render(){
+    const s = schedById(S.sched);
+    const ready = S.seats.length === S.pax;
+    const timer = `<div class="timer" id="seat-timer" role="timer" aria-live="off">Kursi dikunci untuk Anda <b data-cd="seat">10:00</b></div>`;
+    const stopSel = `<div class="field"><label for="naik">Titik naik</label><select id="naik" class="select"><option>Pool Cawang · ${s.dep}</option>${s.extraStop?`<option>${s.extraStop}</option>`:''}</select></div>
+      <div class="field"><label for="turun">Titik turun</label><select id="turun" class="select"><option>Pool Pasteur · ${s.arr}</option><option>Pool Cileunyi · ${s.arr.replace(/:(\d\d)/, (m,mm)=>':'+pad((+mm+20)%60))}</option></select></div>`;
+    const bottom = `<div class="bottom-bar"><div class="timer" style="justify-content:space-between">Kursi dikunci <b data-cd="seat">10:00</b></div><div class="spread"><div><b>${S.seats.length}/${S.pax} kursi</b><div class="muted num" style="font-size:14px">${rp(subtotal())}</div></div><button class="btn btn-primary" data-go-next ${ready?'':'disabled'}>Lanjut</button></div></div>`;
+    return custLayout(`${progress(2)}
+      ${S.offline?'<div class="banner warn" role="alert" style="margin-bottom:16px"><b>Koneksi terputus.</b> Status kursi mungkin belum terbaru. Kursi akan dicek ulang saat Anda menekan Lanjut.</div>':''}
+      <div class="seat-layout">
+        <section class="card bus" aria-label="Peta kursi">
+          <div class="spread" style="width:100%"><div><h2 style="font-size:17px">Pilih ${S.pax} kursi</h2><span class="hint">${s.dep} · ${s.from} → ${s.to} · Bus ${s.kelas}</span></div><span class="badge ${S.offline?'b-warn':'b-ok'}">${S.offline?'Tidak sinkron':'● Langsung'}</span></div>
+          <div class="legend"><span><i></i>Tersedia</span><span><i class="mine"></i>Pilihan Anda</span><span><i class="held"></i>Sedang dipilih</span><span><i class="taken"></i>Terisi</span><span><i class="vip"></i>VIP</span></div>
+          <div class="bus-body"><div class="bus-front"><span class="wheel" title="Sopir">S</span><span>DEPAN</span><span class="door">Pintu</span></div>
+            <div class="grid-seats" id="seatmap">${this.seatMap()}</div>
+            <div class="bus-front" style="margin:14px 0 0"><span></span><span class="door">Toilet</span></div>
+          </div>
+        </section>
+        <aside class="card side-panel">${timer}<div class="stack" id="seat-sum">${this.summary()}</div>${stopSel}
+          <button class="btn btn-primary btn-block" data-go-next ${ready?'':'disabled'}>Lanjut</button>
+          <span class="hint">Pilih ${S.pax} kursi untuk lanjut.</span></aside>
+      </div>`, {bottom});
+  },
+  mount(){
+    $('#seatmap').onclick = e=>{
+      const b = e.target.closest('[data-seat]'); if(!b || b.disabled) return;
+      const id = b.dataset.seat;
+      if(S.held.has(id)){ toast(`Kursi ${id} sedang dipilih penumpang lain. Silakan pilih kursi lain.`,'bad'); return; }
+      if(S.seats.includes(id)){ S.seats = S.seats.filter(x=>x!==id); return refreshSeats(); }
+      if(S.conflictNext){ S.conflictNext=false; S.held.add(id); refreshSeats(); const nb=$(`[data-seat="${id}"]`); if(nb) nb.classList.add('flash'); toast(`Kursi ${id} baru saja dipilih penumpang lain. Silakan pilih kursi lain.`,'bad'); return; }
+      if(S.seats.length >= S.pax){ toast(S.pax>=6 ? 'Maksimal 6 kursi per pesanan' : `Anda memesan ${S.pax} kursi. Lepas satu kursi untuk memilih yang lain.`, S.pax>=6?'bad':''); return; }
+      S.seats.push(id); refreshSeats();
+    };
+    $$('[data-go-next]').forEach(b=>b.onclick=()=>go('penumpang'));
+  }
+};
+function refreshSeats(){
+  const m = $('#seatmap'); if(!m) return; m.innerHTML = SCREENS.kursi.seatMap();
+  const sum = $('#seat-sum'); if(sum) sum.innerHTML = SCREENS.kursi.summary();
+  const ready = S.seats.length === S.pax;
+  $$('[data-go-next]').forEach(b=>b.disabled=!ready);
+  const bb = $('.bottom-bar .spread div'); if(bb) bb.innerHTML = `<b>${S.seats.length}/${S.pax} kursi</b><div class="muted num" style="font-size:14px">${rp(subtotal())}</div>`;
+}
+
+/* L-06 Data penumpang */
+SCREENS.penumpang = {
+  side:'cust', code:'L-06', title:'Data penumpang', refs:'FR-23, FR-24 · AB-06 · R3',
+  states:[{id:'normal',label:'Normal'},{id:'err',label:'Galat: nama kosong'},{id:'promo',label:'Promo diterapkan'},{id:'quota',label:'Kuota promo habis'}],
+  enter(){ if(!S.seats.length){ S.seats = ['6B','7C'].slice(0,S.pax); } S.promo = S.st.penumpang==='promo'; },
+  render(){
+    const st = S.st.penumpang || 'normal';
+    const names = ['Rina Susanti','Dimas Pratama','','','',''];
+    const pax = S.seats.map((id,i)=>`<div class="pax-block"><div class="spread"><b>Penumpang ${i+1} · Kursi ${id}</b><span class="badge b-info">${seatClass(id)}</span></div>
+      <div class="field"><label for="pn${i}">Nama sesuai identitas</label><input id="pn${i}" class="input ${st==='err'&&i===1?'err':''}" value="${st==='err'&&i===1?'':names[i]||''}" autocomplete="name">${st==='err'&&i===1?'<span class="err-text">Nama penumpang wajib diisi</span>':''}</div>
+      ${i===0?'<label class="check"><input type="checkbox" checked> Sama dengan pemesan</label>':''}</div>`).join('');
+    return custLayout(`${progress(3)}<div class="two-col">
+      <div class="stack" style="gap:16px">
+        <section class="card form-card"><h2>Kontak pemesan</h2><div class="fgrid">
+          <div class="field"><label for="cn">Nama lengkap</label><input id="cn" class="input" value="Rina Susanti" autocomplete="name"></div>
+          <div class="field"><label for="ch">No. HP</label><input id="ch" class="input num" value="0812 3456 7890" inputmode="tel" autocomplete="tel"></div>
+          <div class="field" style="grid-column:1/-1"><label for="ce">Email</label><input id="ce" class="input" value="rina.s@contoh.id" type="email" autocomplete="email"><span class="hint">E-ticket dikirim ke email ini.</span></div>
+        </div></section>
+        <section class="card form-card"><h2>Data penumpang</h2>${pax}</section>
+      </div>
+      <aside class="card form-card">
+        <h2>Rincian harga</h2>
+        ${S.seats.map(id=>`<div class="kv"><span>Kursi ${id} · ${seatClass(id)}</span><span class="num">${rp(seatPrice(id))}</span></div>`).join('')}
+        <div class="field"><label for="promo">Kode promo</label><div class="row" style="flex-wrap:nowrap"><input id="promo" class="input mono ${st==='quota'?'err':''}" value="${st==='promo'||st==='quota'?'HEMAT20':''}" placeholder="Opsional"><button class="btn btn-secondary" id="apply">Pakai</button></div>
+          ${st==='quota'?'<span class="err-text">Kuota promo sudah habis</span>':''}${S.promo?'<span class="badge b-ok">HEMAT20 dipakai</span>':''}</div>
+        ${S.promo?`<div class="kv"><span>Promo</span><span class="num" style="color:var(--ok)">− ${rp(20000)}</span></div>`:''}
+        <div class="kv total"><span>Total</span><span class="num">${rp(total())}</span></div>
+        <p class="hint" style="margin:0">Harga sudah termasuk iuran wajib Jasa Raharja</p>
+        <label class="check" style="align-items:flex-start"><input type="checkbox" id="consent" checked style="margin-top:3px"> <span style="font-size:13px">Saya setuju data saya dipakai untuk pemesanan dan manifest perjalanan sesuai Kebijakan Privasi</span></label>
+        <button class="btn btn-primary btn-block" id="to-pay">Lanjut ke Pembayaran</button>
+      </aside></div>`);
+  },
+  mount(){
+    $('#apply').onclick = ()=>{ const v = $('#promo').value.trim().toUpperCase(); if(v==='HEMAT20'){S.st.penumpang='promo';} else {toast('Kode promo tidak dikenali','bad');return;} enterAndRender(); };
+    $('#consent').onchange = e=>{$('#to-pay').disabled = !e.target.checked;};
+    $('#to-pay').onclick = ()=>{
+      const empty = S.seats.some((_,i)=>!$('#pn'+i).value.trim());
+      if(empty){S.st.penumpang='err';render();return;}
+      S.payDeadline = null; S.st.bayar='normal'; go('bayar');
+    };
+  }
+};
+
+/* L-07 Pembayaran */
+SCREENS.bayar = {
+  side:'cust', code:'L-07', title:'Pembayaran', refs:'FR-25–27, FR-29 · AB-01, AB-02, AB-03',
+  states:[{id:'normal',label:'Belum bayar'},{id:'uploaderr',label:'Unggah gagal'},{id:'waiting',label:'Menunggu verifikasi'},{id:'rejected',label:'Ditolak'},{id:'expired',label:'Kedaluwarsa'}],
+  enter(){ if(!S.seats.length) S.seats=['6B','7C']; if(!S.payDeadline) S.payDeadline = Date.now() + 30*60*1000; if(S.st.bayar==='uploaderr'){S.fileErr='Ukuran maksimal 5 MB. Berkas Anda 6,2 MB.';S.file=null;} else if(S.st.bayar==='normal'){S.fileErr='';} },
+  render(){
+    const st = S.st.bayar || 'normal';
+    const amt = total() + S.uniq;
+    const amtStr = amt.toLocaleString('id-ID'); const head = amtStr.slice(0,-3), tail = amtStr.slice(-3);
+    const wa = 'Halo CS Shunlu, saya butuh bantuan untuk kode booking SL7K2M.';
+    if(st==='waiting'){
+      return custLayout(`${progress(4)}<div class="card status-hero" style="max-width:640px;margin:0 auto"><span class="badge b-warn">Menunggu verifikasi</span><h2>Bukti terkirim.</h2><p style="margin:0;color:var(--ink-2)">Kursi Anda aman sampai pembayaran dicek, biasanya kurang dari 15 menit di jam operasional. E-ticket dikirim ke rina.s@contoh.id.</p>
+        <div class="kv" style="width:100%"><span>Kode booking</span><b class="mono">SL7K2M</b></div><div class="kv" style="width:100%"><span>Kursi</span><b>${S.seats.join(', ')}</b></div><div class="kv" style="width:100%"><span>Nominal</span><b class="num">${rp(amt)}</b></div>
+        <button class="btn btn-secondary" data-go="eticket">Lihat contoh setelah lunas</button></div>`, {waText:wa});
+    }
+    if(st==='expired'){
+      return custLayout(`${progress(4)}<div class="card status-hero" style="max-width:640px;margin:0 auto"><span class="badge b-bad">Kedaluwarsa</span><h2>Waktu pembayaran habis dan kursi sudah dilepas.</h2><p style="margin:0;color:var(--ink-2)">Bila Anda sudah transfer, hubungi CS dengan kode booking <b class="mono">SL7K2M</b>. Kami cocokkan dengan mutasi rekening.</p>
+        <div class="row"><a class="btn btn-primary" href="https://wa.me/6281200000000?text=${encodeURIComponent(wa)}" target="_blank" rel="noopener">Chat CS</a><button class="btn btn-secondary" data-go="jadwal">Cari ulang</button></div></div>`, {noFab:true});
+    }
+    const rejected = st==='rejected';
+    return custLayout(`${progress(4)}<div class="two-col">
+      <div class="stack" style="gap:16px">
+        ${rejected?'<div class="banner bad" role="alert"><div><b>Pembayaran belum bisa kami terima:</b> nominal pada bukti Rp360.000, kurang Rp247. Unggah ulang bukti sebelum 15:42 WIB.</div></div>':''}
+        <section class="card form-card">
+          <div class="timer" role="timer">Selesaikan pembayaran dalam <b data-cd="pay">30:00</b></div>
+          <div><span class="hint">Transfer tepat</span><div class="amount num">Rp ${head}<mark>${tail}</mark></div><div class="row" style="margin-top:6px"><button class="copy" id="copy-amt">Salin nominal</button><span class="hint">Transfer tepat sampai 3 digit terakhir agar cepat terverifikasi</span></div></div>
+          <div class="stack" style="gap:10px">
+            <div class="card" style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><b>Bank BCA</b><div class="mono">123 456 7890</div><span class="hint">a.n. PT Primajaya Transportasi</span></div><button class="copy" data-copy="1234567890">Salin</button></div>
+            <div class="card" style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><b>Bank Mandiri</b><div class="mono">137 000 123 4567</div><span class="hint">a.n. PT Primajaya Transportasi</span></div><button class="copy" data-copy="1370001234567">Salin</button></div>
+          </div>
+        </section>
+        <section class="card form-card"><h2>Unggah bukti transfer</h2>
+          <label class="drop ${S.fileErr?'err':S.file?'has':''}" for="bukti">
+            <span style="color:var(--brand)">${IC.up}</span>
+            <b>${S.file?esc(S.file):'Pilih atau seret berkas ke sini'}</b>
+            <span class="hint">JPG, PNG, atau PDF · maksimal 5 MB</span>
+            ${S.fileErr?`<span class="err-text" role="alert">${esc(S.fileErr)}</span>`:''}
+          </label>
+          <input type="file" id="bukti" accept=".jpg,.jpeg,.png,.pdf" class="sr">
+          <button class="btn btn-primary btn-block" id="send" ${S.file?'':'disabled'}>Kirim Bukti Pembayaran</button>
+        </section>
+      </div>
+      <aside class="card form-card"><h2>Ringkasan</h2>
+        <div class="kv"><span>Kode booking</span><b class="mono">SL7K2M</b></div>
+        <div class="kv"><span>Jadwal</span><b>Sab 14 Nov · ${schedById(S.sched).dep}</b></div>
+        <div class="kv"><span>Kursi</span><b>${S.seats.join(', ')}</b></div>
+        <div class="kv"><span>Subtotal</span><span class="num">${rp(subtotal())}</span></div>
+        ${S.promo?`<div class="kv"><span>Promo</span><span class="num">− ${rp(20000)}</span></div>`:''}
+        <div class="kv"><span>Kode unik</span><span class="num">${rp(S.uniq)}</span></div>
+        <div class="kv total"><span>Transfer</span><span class="num">${rp(amt)}</span></div>
+        <ol class="steps-list"><li>Transfer ke salah satu rekening.</li><li>Unggah bukti transfer.</li><li>Kami cocokkan dengan mutasi rekening.</li><li>E-ticket masuk ke email.</li></ol>
+      </aside></div>`, {waText:wa});
+  },
+  mount(){
+    const amt = total() + S.uniq;
+    const c = $('#copy-amt'); if(c) c.onclick = ()=>copyText(String(amt),'Nominal');
+    $$('[data-copy]').forEach(b=>b.onclick=()=>copyText(b.dataset.copy,'Nomor rekening'));
+    const f = $('#bukti'); if(f) f.onchange = e=>{
+      const file = e.target.files[0]; if(!file) return;
+      const okType = /\.(jpe?g|png|pdf)$/i.test(file.name);
+      if(!okType){S.fileErr='Format tidak didukung. Pakai JPG, PNG, atau PDF.';S.file=null;}
+      else if(file.size > 5*1024*1024){S.fileErr=`Ukuran maksimal 5 MB. Berkas Anda ${(file.size/1048576).toFixed(1).replace('.',',')} MB.`;S.file=null;}
+      else {S.fileErr='';S.file=file.name;}
+      render();
+    };
+    const s = $('#send'); if(s) s.onclick = ()=>{S.st.bayar='waiting';render();};
+  }
+};
+
+/* L-08 E-ticket */
+SCREENS.eticket = {
+  side:'cust', code:'L-08', title:'E-ticket', refs:'FR-32, FR-33 · AB-06 · EX-07, EX-22',
+  states:[{id:'normal',label:'Lunas'}],
+  render(){
+    const s = schedById(S.sched); const seats = S.seats.length?S.seats:['6B','7C'];
+    return custLayout(`${progress(6)}
+      <div class="banner ok" style="max-width:720px;margin:0 auto 16px"><b>E-ticket Anda siap.</b>&nbsp;Salinan PDF sudah dikirim ke rina.s@contoh.id.</div>
+      <article class="card ticket">
+        <div class="main">
+          <div class="spread">${logoHtml('beranda')}<span class="badge b-ok">Lunas</span></div>
+          <div><span class="hint">Kode booking</span><div class="booking-code">SL7K2M</div></div>
+          <div class="t-route"><div><b class="num">${s.dep}</b><span class="hint">${s.from}</span></div><span style="flex:1;height:2px;background:var(--line)"></span><div style="text-align:right"><b class="num">${s.arr}</b><span class="hint">${s.to}</span></div></div>
+          <div class="t-meta"><div><span>Tanggal</span><b>Sab, 14 Nov 2026</b></div><div><span>Kursi</span><b>${seats.join(', ')}</b></div><div><span>Kelas</span><b>${seatClass(seats[0])}</b></div><div><span>Penumpang</span><b>Rina Susanti${seats.length>1?' +'+(seats.length-1):''}</b></div><div><span>Armada</span><b>B 7123 PJA</b></div><div><span>Naik di</span><b>Pool Cawang</b></div></div>
+          <p class="hint" style="margin:0">Harga sudah termasuk iuran wajib Jasa Raharja. Datang 30 menit sebelum berangkat dan tunjukkan QR ke petugas.</p>
+        </div>
+        <div class="qr"><canvas id="qr" width="168" height="168" aria-label="QR boarding untuk kode SL7K2M" role="img"></canvas><span class="hint">QR contoh</span>
+          <button class="btn btn-primary btn-sm btn-block" id="dl">Unduh PDF</button>
+          <button class="btn btn-secondary btn-sm btn-block" id="pwa">Tambah ke layar utama</button>
+        </div>
+      </article>`, {waText:'Halo CS Shunlu, saya butuh bantuan untuk kode booking SL7K2M.'});
+  },
+  mount(){
+    drawQR($('#qr'),'SL7K2M');
+    $('#dl').onclick = ()=>toast('Di aplikasi asli, PDF e-ticket terunduh.');
+    $('#pwa').onclick = ()=>toast('Di aplikasi asli, browser menawarkan pemasangan ke layar utama.');
+  }
+};
+function drawQR(cv, text){
+  if(!cv) return; const ctx = cv.getContext('2d'); const n = 25, m = cv.width/n;
+  let seed = 0; for(const ch of text) seed = (seed*31 + ch.charCodeAt(0)) >>> 0;
+  const rnd = ()=>{ seed = (seed*1664525 + 1013904223) >>> 0; return seed/4294967296; };
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,cv.width,cv.height); ctx.fillStyle='#14202E';
+  const finder = (x,y)=>{ ctx.fillRect(x*m,y*m,7*m,7*m); ctx.fillStyle='#fff'; ctx.fillRect((x+1)*m,(y+1)*m,5*m,5*m); ctx.fillStyle='#14202E'; ctx.fillRect((x+2)*m,(y+2)*m,3*m,3*m); };
+  for(let y=0;y<n;y++) for(let x=0;x<n;x++){
+    const inF = (x<8&&y<8)||(x>n-9&&y<8)||(x<8&&y>n-9); if(inF) continue;
+    if(rnd()>.52) ctx.fillRect(x*m,y*m,m,m);
+  }
+  finder(0,0); finder(n-7,0); finder(0,n-7);
+}
+
+/* L-13 Cek ongkir */
+const ZONES = {'Jakarta-Bandung':{Reguler:{kg:6000,eta:'1–2 hari'},Kilat:{kg:9000,eta:'Hari ini, sebelum 21:00'}},
+  'Jakarta-Tasikmalaya':{Reguler:{kg:8000,eta:'2 hari'},Kilat:{kg:12000,eta:'1 hari'}},
+  'Jakarta-Cirebon':{Reguler:{kg:7000,eta:'1–2 hari'},Kilat:{kg:10500,eta:'1 hari'}},
+  'Bandung-Jakarta':{Reguler:{kg:6000,eta:'1–2 hari'},Kilat:{kg:9000,eta:'Hari ini, sebelum 21:00'}}};
+const MINCHARGE = 25000, DIV = 4000, INS = 0.002;
+function calcOngkir(){
+  const z = ZONES[S.cFrom+'-'+S.cTo]; if(!z) return null; const t = z[S.svc];
+  const rows = S.koli.map(k=>{ const vol = (k.p*k.l*k.t)/DIV; const bill = Math.max(k.w, vol); return {...k, vol, bill}; });
+  const billTotal = rows.reduce((a,r)=>a+Math.ceil(r.bill),0);
+  const raw = billTotal * t.kg; const ong = Math.max(raw, MINCHARGE); const ins = S.ins ? S.nilai*INS : 0;
+  return {rows, billTotal, raw, ong, min:raw<MINCHARGE, ins, total:ong+ins, eta:t.eta, tarif:t.kg};
+}
+SCREENS.ongkir = {
+  side:'cust', code:'L-13', title:'Cek ongkir', refs:'FR-40, FR-41 · AB-08, AB-09, AB-10',
+  states:[{id:'normal',label:'Normal'},{id:'nozone',label:'Zona tidak dilayani'},{id:'min',label:'Kena minimum charge'}],
+  enter(){ const st=S.st.ongkir||'normal'; if(st==='nozone'){S.cTo='Garut';} else if(S.cTo==='Garut'){S.cTo='Bandung';} if(st==='min'){S.koli=[{w:1,p:10,l:10,t:10}];S.ins=false;} },
+  render(){
+    const opt = sel => CITIES.map(c=>`<option ${c===sel?'selected':''}>${c}</option>`).join('');
+    const r = calcOngkir();
+    const koli = S.koli.map((k,i)=>`<div class="koli" data-i="${i}"><span class="no">#${i+1}</span>
+      <div class="field f-w"><label for="kw${i}">Berat (kg)</label><input id="kw${i}" class="input num" type="number" min="0.1" step="0.1" value="${k.w}" data-k="w"></div>
+      <div class="field f-p"><label for="kp${i}">P (cm)</label><input id="kp${i}" class="input num" type="number" min="1" value="${k.p}" data-k="p"></div>
+      <div class="field f-l"><label for="kl${i}">L (cm)</label><input id="kl${i}" class="input num" type="number" min="1" value="${k.l}" data-k="l"></div>
+      <div class="field f-t"><label for="kt${i}">T (cm)</label><input id="kt${i}" class="input num" type="number" min="1" value="${k.t}" data-k="t"></div>
+      <button class="btn btn-text" data-del="${i}" aria-label="Hapus koli ${i+1}" ${S.koli.length<2?'disabled':''} style="height:44px">✕</button></div>`).join('');
+    const res = r ? `
+      ${r.rows.map((x,i)=>`<div class="wt"><span>Koli #${i+1} · aktual</span><b class="num">${x.w.toLocaleString('id-ID')} kg</b><span>Volume (P×L×T ÷ ${DIV})</span><b class="num">${x.vol.toLocaleString('id-ID',{maximumFractionDigits:1})} kg</b><span>Berat tertagih</span><b class="num">${Math.ceil(x.bill)} kg <span class="badge b-accent">${x.vol>x.w?'volume dipakai':'aktual dipakai'}</span></b></div>`).join('')}
+      <div class="kv"><span>${r.billTotal} kg × ${rp(r.tarif)}</span><span class="num">${rp(r.raw)}</span></div>
+      ${r.min?`<div class="kv"><span>Minimum charge</span><span class="num">${rp(MINCHARGE)}</span></div>`:''}
+      ${S.ins?`<div class="kv"><span>Asuransi 0,2% × ${rp(S.nilai)}</span><span class="num">${rp(r.ins)}</span></div>`:''}
+      <div class="kv total"><span>Estimasi ongkir</span><span class="num">${rp(r.total)}</span></div>
+      <div class="kv"><span>Estimasi tiba</span><b>${r.eta}</b></div>
+      <p class="hint" style="margin:0">Estimasi ongkir. Ongkir final setelah barang ditimbang di gudang.</p>
+      <p class="hint" style="margin:0">Berat tertagih memakai nilai terbesar antara berat asli dan berat volume.</p>
+      <button class="btn btn-primary btn-block" data-go="resi">Buat Pengiriman</button>`
+      : `<div class="banner bad" role="alert"><div><b>Rute ini belum kami layani.</b> Cargo saat ini melayani Jakarta, Bandung, Cirebon, dan Tasikmalaya.</div></div><button class="btn btn-primary btn-block" disabled>Buat Pengiriman</button>`;
+    return custLayout(`<h1 style="font-size:24px;margin-bottom:16px">Cek ongkir cargo</h1><div class="two-col">
+      <section class="card form-card">
+        <div class="fgrid"><div class="field"><label for="cf">Kota asal</label><select id="cf" class="select">${opt(S.cFrom)}</select></div><div class="field"><label for="ct">Kota tujuan</label><select id="ct" class="select">${opt(S.cTo)}</select></div></div>
+        <div class="field"><label>Layanan</label><div class="seg" style="background:var(--line-2);width:max-content">${['Reguler','Kilat'].map(v=>`<button type="button" data-svc="${v}" aria-pressed="${S.svc===v}" style="color:var(--ink)">${v}</button>`).join('')}<button type="button" disabled style="opacity:.5" title="Belum tersedia di rute ini">Same day</button></div></div>
+        <h2>Koli</h2><div class="stack" id="kolis">${koli}</div>
+        <button class="btn btn-secondary" id="addk" style="align-self:flex-start">+ Tambah koli</button>
+        <label class="switch"><input type="checkbox" id="ins" ${S.ins?'checked':''}> Asuransi barang</label>
+        ${S.ins?`<div class="field"><label for="nilai">Nilai barang</label><input id="nilai" class="input num" type="number" value="${S.nilai}" min="0" step="50000"><span class="hint">Biaya 0,2% dari nilai barang (Asuransi Vendor A).</span></div>`:''}
+      </section>
+      <aside class="card calc-res" aria-live="polite">${res}</aside></div>`, {waText:'Halo CS Shunlu, saya mau tanya pengiriman cargo.'});
+  },
+  mount(){
+    $('#cf').onchange=e=>{S.cFrom=e.target.value;render();};
+    $('#ct').onchange=e=>{S.cTo=e.target.value;render();};
+    $$('[data-svc]').forEach(b=>b.onclick=()=>{S.svc=b.dataset.svc;render();});
+    $('#kolis').onchange = e=>{ const inp=e.target; const i=+inp.closest('[data-i]').dataset.i; S.koli[i][inp.dataset.k]=Math.max(0.1,parseFloat(inp.value)||0.1); render(); };
+    $$('[data-del]').forEach(b=>b.onclick=()=>{S.koli.splice(+b.dataset.del,1);render();});
+    $('#addk').onclick=()=>{S.koli.push({w:2,p:20,l:20,t:20});render();};
+    $('#ins').onchange=e=>{S.ins=e.target.checked;render();};
+    const n=$('#nilai'); if(n) n.onchange=e=>{S.nilai=Math.max(0,+e.target.value||0);render();};
+  }
+};
+
+/* L-14 Resi */
+function barcode(text){
+  let x=0, bars='';
+  for(const ch of ('*'+text+'*')){ const c = ch.charCodeAt(0); for(let b=0;b<6;b++){ const w = ((c>>b)&1) ? 3 : 1; if(b%2===0) bars += `<rect x="${x}" y="0" width="${w}" height="56" fill="#14202E"/>`; x += w + 1; } x+=2; }
+  return `<svg width="100%" height="56" viewBox="0 0 ${x} 56" preserveAspectRatio="none" role="img" aria-label="Barcode ${text}" style="max-width:340px">${bars}</svg>`;
+}
+SCREENS.resi = {
+  side:'cust', code:'L-14', title:'Resi dibuat', refs:'FR-42, FR-43',
+  states:[{id:'normal',label:'Resi dibuat'}],
+  render(){
+    const r = calcOngkir() || {total:61000,eta:'1–2 hari'};
+    const link = 'https://shunlu.example/lacak#SLC261113A7K';
+    return custLayout(`<div class="card resi-box" style="max-width:640px;margin:0 auto">
+      <span class="badge b-ok">Pengiriman dibuat</span>
+      <span class="hint">Nomor resi</span><div class="resi-no">SLC261113A7K</div>${barcode('SLC261113A7K')}
+      <div class="stack" style="width:100%;text-align:left;gap:8px">
+        <div class="kv"><span>Rute</span><b>${S.cFrom} → ${S.cTo}</b></div>
+        <div class="kv"><span>Koli</span><b>${S.koli.length} koli · ${S.svc}</b></div>
+        <div class="kv"><span>Estimasi ongkir</span><b class="num">${rp(r.total)}</b></div>
+        <div class="kv"><span>Serahkan barang di</span><b>Gudang Cawang · 07:00–20:00</b></div>
+      </div>
+      <div class="banner info" style="text-align:left"><div>Bayar ongkir final di loket gudang setelah barang ditimbang. Bawa resi ini atau sebutkan nomornya.</div></div>
+      <div class="row" style="justify-content:center"><button class="btn btn-primary" id="pdf">Unduh resi PDF</button><button class="btn btn-secondary" id="cl">Salin tautan lacak</button>
+      <a class="btn btn-secondary" href="https://wa.me/?text=${encodeURIComponent('Lacak kiriman Shunlu SLC261113A7K: '+link)}" target="_blank" rel="noopener">Bagikan ke WhatsApp</a></div>
+    </div>`);
+  },
+  mount(){ $('#pdf').onclick=()=>toast('Di aplikasi asli, resi dan label PDF terunduh.'); $('#cl').onclick=()=>copyText('https://shunlu.example/lacak#SLC261113A7K','Tautan lacak'); }
+};
+
+/* L-15 Lacak */
+SCREENS.lacak = {
+  side:'cust', code:'L-15', title:'Lacak resi', refs:'FR-44–46 · AB-11, AB-12 · EX-13',
+  states:[{id:'jalan',label:'Dalam perjalanan'},{id:'diterima',label:'Diterima'},{id:'notfound',label:'Tidak ditemukan'}],
+  render(){
+    const st = S.st.lacak || 'jalan';
+    const form = `<form id="f-lacak" class="row" style="max-width:640px;margin:0 auto 20px;flex-wrap:nowrap"><label class="sr" for="lr">Nomor resi</label><input id="lr" class="input mono" value="${st==='notfound'?'SLC261113X9Z':'SLC261113A7K'}" maxlength="12"><button class="btn btn-primary">Lacak</button></form>`;
+    if(st==='notfound') return custLayout(`<h1 style="font-size:24px;margin-bottom:16px;text-align:center">Lacak kiriman</h1>${form}<div class="card empty" style="max-width:640px;margin:0 auto"><h3>Nomor resi tidak ditemukan.</h3><p>Periksa kembali 12 karakter pada resi Anda. Resi Shunlu diawali SLC.</p></div>`);
+    const done = st==='diterima';
+    const ev = [
+      done?{t:'Diterima',d:'Sab 14 Nov · 15:12 · Bandung',cls:'ok',proof:true}:null,
+      done?{t:'Diantar ke alamat penerima',d:'Sab 14 Nov · 13:05 · Gudang Pasteur'}:null,
+      {t:'Tiba di gudang tujuan',d:'Sab 14 Nov · 09:58 · Gudang Pasteur, Bandung',cls:done?'':'now'},
+      {t:'Dalam perjalanan',d:'Sab 14 Nov · 07:02 · Dimuat ke bus 07:00 Jakarta → Bandung (B 7123 PJA)'},
+      {t:'Diterima di gudang asal',d:'Jum 13 Nov · 16:40 · Gudang Cawang, Jakarta · ditimbang 16 kg'},
+      {t:'Pengiriman dibuat',d:'Jum 13 Nov · 14:22 · Online'}
+    ].filter(Boolean);
+    return custLayout(`<h1 style="font-size:24px;margin-bottom:16px;text-align:center">Lacak kiriman</h1>${form}
+      <div class="card" style="max-width:640px;margin:0 auto;padding:20px 24px;display:flex;flex-direction:column;gap:18px">
+        <div class="spread"><div><span class="hint">Resi</span><div class="mono" style="font-size:20px;font-weight:600">SLC261113A7K</div></div><span class="badge ${done?'b-ok':'b-info'}">${done?'Diterima':'Tiba di gudang tujuan'}</span></div>
+        <div class="t-meta"><div><span>Rute</span><b>Jakarta → Bandung</b></div><div><span>Layanan</span><b>Reguler · 2 koli</b></div><div><span>Estimasi tiba</span><b>Sab 14 Nov</b></div></div>
+        <ol class="timeline">${ev.map(e=>`<li class="${e.cls||''}"><span class="dot"></span><div><h4>${e.t}</h4><p>${e.d}</p>${e.proof?`<div class="proof"><figure><svg width="96" height="64" viewBox="0 0 96 64" aria-hidden="true"><rect width="96" height="64" fill="#E7EEF5"/><rect x="30" y="20" width="36" height="30" fill="#C9A26B"/><path d="M30 20l18-10 18 10" fill="#B88D55"/></svg><figcaption>Foto paket</figcaption></figure><figure><svg width="96" height="64" viewBox="0 0 96 64" aria-hidden="true"><path d="M8 44c10-20 18 8 26-6s10-18 18 2 12-10 20-4 10 8 16 2" fill="none" stroke="#14202E" stroke-width="2"/></svg><figcaption>Tanda tangan</figcaption></figure><span class="hint" style="align-self:center">Diterima oleh Bu**i S***i</span></div>`:''}</div></li>`).join('')}</ol>
+        <p class="hint" style="margin:0">Notifikasi status dikirim ke email pengirim.</p>
+      </div>`);
+  },
+  mount(){ $('#f-lacak').onsubmit = e=>{e.preventDefault(); const v=$('#lr').value.trim().toUpperCase(); S.st.lacak = v==='SLC261113A7K' ? (S.st.lacak==='diterima'?'diterima':'jalan') : 'notfound'; render();}; }
+};
+
+/* ======================= Admin ======================= */
+const ROLES = {
+  super:{label:'Superadmin · semua branch', menus:['dashboard','verifikasi','rekonsiliasi','manifest','scan','master-tiket','master-cargo','layout','laporan','pengaturan','cms','akses']},
+  tiket:{label:'Admin Ticketing · Bandung', menus:['dashboard','verifikasi','rekonsiliasi','manifest','laporan']},
+  cargo:{label:'Admin Cargo · Bandung', menus:['dashboard','scan','laporan']}
+};
+function adminLayout(id, title, inner){
+  const r = ROLES[S.role]; const allowed = r.menus.includes(id.replace('admin-',''));
+  const item = (key, label, cnt) => r.menus.includes(key) ? `<a data-go="admin-${key}" class="${id==='admin-'+key||(key==='master-tiket'&&id==='admin-layout')?'on':''}">${label}${cnt?`<span class="cnt">${cnt}</span>`:''}</a>` : '';
+  const body = allowed ? inner : `<div class="card denied"><span style="color:var(--ink-3)">${IC.lock}</span><h2 style="font-size:18px">Anda tidak punya akses ke halaman ini.</h2><p class="muted" style="margin:0">Hubungi Superadmin bila butuh akses.</p><button class="btn btn-secondary" data-go="admin-dashboard">Kembali ke Dashboard</button></div>`;
+  return `<div class="a-wrap"><nav class="a-side" aria-label="Menu back office">${logoHtml('admin-dashboard')}
+    ${item('dashboard','Dashboard')}
+    ${r.menus.some(m=>['verifikasi','rekonsiliasi','manifest'].includes(m))?'<h5>Ticketing</h5>':''}
+    ${item('verifikasi','Verifikasi pembayaran', S.queue.length||'')}${item('rekonsiliasi','Rekonsiliasi mutasi')}${item('manifest','Manifest & boarding')}
+    ${r.menus.includes('scan')?'<h5>Cargo</h5>':''}${item('scan','Scan status koli')}
+    ${r.menus.some(m=>m.startsWith('master'))?'<h5>Master data</h5>':''}${item('master-tiket','Master Ticketing')}${item('master-cargo','Master Cargo')}
+    ${item('laporan','Laporan')}
+    ${r.menus.some(m=>['pengaturan','cms','akses'].includes(m))?'<h5>Pengaturan</h5>':''}${item('pengaturan','Pengaturan umum')}${item('cms','CMS')}${item('akses','User & hak akses')}
+    <a data-go="admin-login" style="margin-top:auto">Keluar</a>
+  </nav><div class="a-main"><div class="a-top"><h1>${title}</h1>
+    <label class="sr" for="role">Masuk sebagai</label><select id="role" class="select">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}" ${S.role===k?'selected':''}>${v.label}</option>`).join('')}</select>
+  </div><div class="a-content">${body}</div></div></div>`;
+}
+function mountAdmin(){ const r=$('#role'); if(r) r.onchange=e=>{S.role=e.target.value;render();}; }
+
+/* L-19 Login */
+SCREENS['admin-login'] = {
+  side:'admin', code:'L-19', title:'Login admin + OTP', refs:'FR-05 · EX-21',
+  states:[{id:'otp',label:'Isi OTP'},{id:'expired',label:'OTP kedaluwarsa'},{id:'locked',label:'Akun terkunci'}],
+  render(){
+    const st = S.st['admin-login'] || 'otp';
+    return `<div style="min-height:720px;background:var(--bg);padding:16px"><div class="card login">${logoHtml('admin-login')}
+      <h1 style="font-size:22px">Masuk back office</h1>
+      ${st==='locked'?'<div class="banner bad" role="alert">5 kali gagal masuk. Akun dikunci sampai 15:27 WIB.</div>':''}
+      <p class="muted" style="margin:0">Kode 6 digit dikirim ke a***n@shunlu.example. Berlaku 5 menit.</p>
+      <div class="otp" role="group" aria-label="Kode OTP">${[4,8,2,1,9,''].map((v,i)=>`<input inputmode="numeric" maxlength="1" aria-label="Digit ${i+1}" value="${st==='locked'?'':v}" ${st==='locked'?'disabled':''} class="${st==='expired'?'err':''}">`).join('')}</div>
+      ${st==='expired'?'<span class="err-text" role="alert">Kode kedaluwarsa. Minta kode baru.</span>':''}
+      <button class="btn btn-primary btn-block" data-go="admin-dashboard" ${st==='locked'?'disabled':''}>Masuk</button>
+      <button class="btn btn-text" ${st==='locked'?'disabled':''}>Kirim ulang kode (00:42)</button></div></div>`;
+  }
+};
+
+/* L-09 Dashboard */
+const REV = [38.2,41.5,39.8,44.1,52.6,61.3,58.9,40.2,42.7,43.9,47.5,55.8,63.4,60.1];
+const REVD = ['31','1','2','3','4','5','6','7','8','9','10','11','12','13'];
+function revChart(){
+  const W=640,H=220,l=44,b=28,t=16,r=12, max=80, bw=(W-l-r)/REV.length;
+  const y = v => t + (H-t-b)*(1 - v/max);
+  let g = '';
+  [0,20,40,60,80].forEach(v=>{ g += `<line x1="${l}" x2="${W-r}" y1="${y(v)}" y2="${y(v)}" stroke="#EDF1F5"/><text x="${l-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="#6E7D8E">${v}</text>`; });
+  const bars = REV.map((v,i)=>{ const x = l + i*bw + 4, last = i===REV.length-1; return `<rect x="${x}" y="${y(v)}" width="${bw-8}" height="${y(0)-y(v)}" rx="3" fill="${last?'#0F5C4D':'#9CCBBE'}"><title>${REVD[i]} ${i?'Nov':'Okt'}: Rp ${v.toLocaleString('id-ID')} jt</title></rect>${last?`<text x="${x+(bw-8)/2}" y="${y(v)-6}" text-anchor="middle" font-size="11" font-weight="700" fill="#14202E">${v.toLocaleString('id-ID')}</text>`:''}<text x="${x+(bw-8)/2}" y="${H-10}" text-anchor="middle" font-size="10.5" fill="#6E7D8E">${REVD[i]}</text>`; }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Pendapatan harian 31 Okt sampai 13 Nov 2026, juta rupiah">${g}${bars}<text x="${l}" y="10" font-size="11" fill="#6E7D8E">Rp juta</text></svg>`;
+}
+SCREENS['admin-dashboard'] = {
+  side:'admin', code:'L-09', title:'Dashboard', refs:'FR-52, FR-53, FR-56 · AB-13 · EX-19, EX-20',
+  states:[{id:'normal',label:'Ada peringatan'},{id:'clear',label:'Tanpa peringatan'}],
+  render(){
+    const clear = S.st['admin-dashboard']==='clear';
+    const isCargo = S.role==='cargo', isTiket = S.role==='tiket';
+    const kpi = [
+      !isCargo&&{l:'Pendapatan tiket hari ini',v:'Rp 60,1 jt',s:'−5% dari kemarin'},
+      !isCargo&&{l:'Tiket terjual',v:'334',s:'Okupansi rata-rata 78%'},
+      !isCargo&&{l:'Menunggu verifikasi',v:String(S.queue.length),s:clear?'Semua < 30 menit':'2 lebih dari 30 menit',c:clear?'':'bad'},
+      !isTiket&&{l:'Resi dalam perjalanan',v:'112',s:'38 dimuat hari ini'},
+      !isTiket&&{l:'Resi lewat estimasi',v:clear?'0':'4',s:clear?'Sesuai SLA':'Zona Tasikmalaya 3',c:clear?'':'warn'},
+      {l:'Median verifikasi',v:'11 mnt',s:'Target ≤ 15 menit'}
+    ].filter(Boolean);
+    const occ = [['05:30 JKT–BDG',95],['07:00 JKT–BDG',88],['09:30 JKT–BDG',97],['13:00 JKT–BDG',61],['19:00 JKT–BDG',72],['06:00 BDG–JKT',83]];
+    const alerts = clear ? '<p class="muted" style="margin:0">Tidak ada peringatan.</p>' : `
+      <div class="alert"><i class="bad"></i><div><b>SL4R8T</b> menunggu verifikasi 42 menit<br><span class="hint">Cocok mutasi 14:21 · bisa langsung disetujui</span></div><button class="btn btn-secondary btn-sm" data-go="admin-verifikasi">Buka</button></div>
+      <div class="alert"><i class="bad"></i><div><b>SL9M2C</b> menunggu verifikasi 34 menit<br><span class="hint">Belum ada mutasi cocok</span></div><button class="btn btn-secondary btn-sm" data-go="admin-verifikasi">Buka</button></div>
+      <div class="alert"><i></i><div><b>3 resi</b> Jakarta → Tasikmalaya lewat estimasi<br><span class="hint">Terakhir dipindai Gudang Cawang, Jum 13 Nov 16:40</span></div><button class="btn btn-secondary btn-sm" data-go="admin-scan">Buka</button></div>`;
+    return adminLayout('admin-dashboard','Dashboard',`
+      <div class="spread"><span class="muted">Jum, 13 Nov 2026 · ${ROLES[S.role].label.split(' · ')[1]} · data contoh</span><select class="select" style="width:auto" aria-label="Periode"><option>Hari ini</option><option>7 hari</option><option>30 hari</option></select></div>
+      <div class="kpis">${kpi.map(k=>`<div class="card kpi ${k.c||''}"><span>${k.l}</span><b class="num">${k.v}</b><small>${k.s}</small></div>`).join('')}</div>
+      <div class="dash-grid">
+        ${isCargo?`<section class="card panel"><h2>Status cargo hari ini</h2>${[['Diterima gudang asal',46],['Dalam perjalanan',112],['Tiba gudang tujuan',57],['Siap diambil / diantar',31],['Diterima',89]].map(([n,v])=>`<div class="occ"><span>${n}</span><span class="bar"><i style="width:${v/1.2}%"></i></span><b class="num">${v}</b></div>`).join('')}</section>`
+        :`<section class="card panel"><div class="spread"><h2>Pendapatan tiket harian</h2><span class="hint">31 Okt – 13 Nov 2026</span></div>${revChart()}<p class="hint" style="margin:0">Puncak di akhir pekan; Jumat 13 Nov Rp 60,1 jt.</p></section>`}
+        <section class="card panel"><h2>Peringatan SLA</h2>${alerts}</section>
+      </div>
+      ${isCargo?'':`<section class="card panel"><div class="spread"><h2>Okupansi jadwal hari ini</h2><span class="hint">Kursi lunas ÷ kapasitas</span></div>${occ.map(([n,v])=>`<div class="occ"><span class="num">${n}</span><span class="bar"><i style="width:${v}%;${v<65?'background:var(--warn)':''}"></i></span><b class="num">${v}%</b></div>`).join('')}</section>`}
+    `);
+  },
+  mount: mountAdmin
+};
+
+/* L-10 Verifikasi */
+SCREENS['admin-verifikasi'] = {
+  side:'admin', code:'L-10', title:'Verifikasi pembayaran', refs:'FR-28, FR-29 · AB-02, AB-03',
+  states:[{id:'normal',label:'Ada antrean'},{id:'empty',label:'Antrean kosong'}],
+  enter(){ if(S.st['admin-verifikasi']==='empty'){S.queue=[];S.verif=null;} else if(!S.queue.length){resetQueue();} },
+  render(){
+    if(!S.queue.length) return adminLayout('admin-verifikasi','Verifikasi pembayaran',`<div class="card empty"><span class="badge b-ok">Beres</span><h3>Semua pembayaran sudah diverifikasi.</h3><p>Antrean baru muncul di sini begitu customer mengunggah bukti.</p></div>`);
+    const v = S.queue.find(q=>q.code===S.verif) || S.queue[0]; S.verif = v.code;
+    const amt = v.amount.toLocaleString('id-ID');
+    return adminLayout('admin-verifikasi','Verifikasi pembayaran',`<div class="verif">
+      <section class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Menunggu</th><th>Kode</th><th>Pemesan</th><th>Nominal</th><th>Mutasi</th></tr></thead><tbody>
+        ${S.queue.map(q=>`<tr class="click ${q.code===v.code?'sel':''}" data-row="${q.code}" tabindex="0"><td class="age ${q.age>30?'late':''} num">${q.age} mnt</td><td class="mono">${q.code}</td><td>${q.name}<br><span class="hint">${q.sched}</span></td><td class="num">${rp(q.amount)}</td><td>${q.recon.startsWith('Cocok')?`<span class="badge b-ok">${q.recon}</span>`:`<span class="badge b-neutral">${q.recon}</span>`}</td></tr>`).join('')}
+      </tbody></table></div></section>
+      <section class="card panel"><div class="spread"><h2 class="mono">${v.code}</h2><span class="badge b-warn">Menunggu verifikasi</span></div>
+        <div class="kv"><span>Nominal diharapkan</span><b class="mono">Rp ${amt.slice(0,-3)}<mark style="background:var(--accent);border-radius:4px;padding:0 2px">${amt.slice(-3)}</mark></b></div>
+        <div class="kv"><span>Rekening tujuan</span><b>BCA 123 456 7890</b></div>
+        <div class="kv"><span>Mutasi rekening</span><b>${v.recon}</b></div>
+        <div class="proof-img"><svg width="220" height="230" viewBox="0 0 220 230" role="img" aria-label="Bukti transfer"><rect width="220" height="230" rx="10" fill="#fff" stroke="#DCE3EB"/><rect x="0" y="0" width="220" height="44" rx="10" fill="#0F5C4D"/><text x="16" y="28" fill="#fff" font-size="14" font-weight="700">m-Banking</text><text x="16" y="74" font-size="11" fill="#6E7D8E">Transfer berhasil</text><text x="16" y="100" font-size="20" font-weight="700" fill="#14202E">Rp ${amt}</text><text x="16" y="132" font-size="11" fill="#6E7D8E">Ke: PT PRIMAJAYA TRANSPORTASI</text><text x="16" y="150" font-size="11" fill="#6E7D8E">BCA 1234567890</text><text x="16" y="176" font-size="11" fill="#6E7D8E">13/11/2026 14:2${v.age%10}:08 WIB</text><text x="16" y="194" font-size="11" fill="#6E7D8E">Dari: ${v.name.toUpperCase()}</text></svg></div>
+        <div class="row"><button class="btn btn-primary" id="approve" style="flex:1">Setujui</button><button class="btn btn-danger" id="reject" style="flex:1">Tolak</button></div>
+        <span class="hint">Setujui hanya bila nominal sama persis dengan mutasi rekening.</span>
+      </section></div>`);
+  },
+  mount(){
+    mountAdmin();
+    $$('[data-row]').forEach(r=>{ r.onclick=()=>{S.verif=r.dataset.row;render();}; r.onkeydown=e=>{if(e.key==='Enter'){S.verif=r.dataset.row;render();}}; });
+    const a=$('#approve'); if(a) a.onclick=()=>{ const c=S.verif; S.queue=S.queue.filter(q=>q.code!==c); S.verif=S.queue[0]&&S.queue[0].code; render(); toast(`${c} lunas. E-ticket terkirim ke email pemesan.`,'ok'); };
+    const rj=$('#reject'); if(rj) rj.onclick=()=>{
+      modal(`<h3>Tolak pembayaran ${S.verif}?</h3><div class="field"><label for="why">Alasan (dikirim ke customer)</label><textarea id="why" class="input" style="height:88px;padding:10px" placeholder="Contoh: nominal kurang Rp247"></textarea></div><div class="row" style="justify-content:flex-end"><button class="btn btn-secondary" id="m-cancel">Batal</button><button class="btn btn-danger solid" id="m-ok" disabled>Tolak pembayaran</button></div>`);
+      $('#why').oninput=e=>{$('#m-ok').disabled=!e.target.value.trim();};
+      $('#m-cancel').onclick=closeModal;
+      $('#m-ok').onclick=()=>{ const c=S.verif; S.queue=S.queue.filter(q=>q.code!==c); S.verif=S.queue[0]&&S.queue[0].code; closeModal(); render(); toast(`${c} ditolak. Customer bisa unggah ulang selama kursi masih ditahan.`); };
+    };
+  }
+};
+
+/* L-11 Rekonsiliasi */
+SCREENS['admin-rekonsiliasi'] = {
+  side:'admin', code:'L-11', title:'Rekonsiliasi mutasi', refs:'FR-30, FR-31 · AB-03 · EX-06',
+  states:[{id:'upload',label:'Belum unggah'},{id:'result',label:'Hasil cocok'},{id:'badformat',label:'Format tidak dikenali'}],
+  render(){
+    const st = S.st['admin-rekonsiliasi'] || 'upload';
+    const up = `<section class="card panel"><h2>Unggah mutasi rekening</h2><div class="fgrid"><div class="field"><label for="rk">Rekening</label><select id="rk" class="select"><option>BCA 123 456 7890</option><option>Mandiri 137 000 123 4567</option></select></div><div class="field"><label for="tg">Tanggal mutasi</label><input id="tg" class="input" type="date" value="2026-11-13"></div></div>
+      <label class="drop ${st==='badformat'?'err':''}" for="mut"><span style="color:var(--brand)">${IC.up}</span><b>Pilih berkas CSV atau Excel dari internet banking</b><span class="hint">Kolom: tanggal, keterangan, nominal</span>${st==='badformat'?'<span class="err-text" role="alert">Format mutasi tidak dikenali. Kolom tanggal dan nominal tidak ditemukan. Tidak ada status yang berubah.</span>':''}</label><input type="file" id="mut" class="sr" accept=".csv,.xls,.xlsx">
+      <button class="btn btn-secondary" id="sample" style="align-self:flex-start">Pakai contoh mutasi (30 baris)</button></section>`;
+    if(st!=='result') return adminLayout('admin-rekonsiliasi','Rekonsiliasi mutasi', up);
+    const row = (a,b,c,d) => `<tr><td class="num">${a}</td><td>${b}</td><td class="num">${c}</td><td>${d}</td></tr>`;
+    return adminLayout('admin-rekonsiliasi','Rekonsiliasi mutasi',`
+      <div class="spread"><span class="muted">BCA 123 456 7890 · 13 Nov 2026 · 30 baris mutasi masuk</span><button class="btn btn-secondary btn-sm" id="again">Unggah lagi</button></div>
+      <div class="match"><div class="card"><span class="hint">Cocok</span><b class="num">25</b><span class="hint">Nominal + kode unik + waktu sesuai</span></div><div class="card r"><span class="hint">Ragu</span><b class="num">2</b><span class="hint">Nominal cocok, pesanan kedaluwarsa</span></div><div class="card x"><span class="hint">Tidak cocok</span><b class="num">3</b><span class="hint">Mutasi tanpa pesanan</span></div></div>
+      <section class="card panel"><div class="spread"><h2>Cocok (25)</h2><button class="btn btn-primary" id="appr-all">Setujui yang cocok (25)</button></div>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Waktu</th><th>Pesanan</th><th>Nominal</th><th>Keterangan mutasi</th></tr></thead><tbody>
+        ${row('14:21','SL4R8T · Hendra W.',rp(360519),'TRSF E-BANKING HENDRA W')}${row('14:52','SL7K2M · Rina S.',rp(360247),'TRSF E-BANKING RINA SUSANTI')}${row('13:40','SL3D1F · Sinta A.',rp(180381),'SETORAN ATM')}<tr><td colspan="4" class="hint">+ 22 baris lain</td></tr></tbody></table></div></section>
+      <section class="card panel"><h2>Ragu (2)</h2><div class="tbl-wrap"><table class="tbl"><tbody>
+        <tr><td class="num">11:05</td><td>SL8N4K · pesanan kedaluwarsa 10:58</td><td class="num">${rp(150772)}</td><td><button class="btn btn-secondary btn-sm">Pulihkan pesanan (kursi 5C masih kosong)</button></td></tr>
+        <tr><td class="num">09:47</td><td>SL1A7Z · pesanan kedaluwarsa 09:30</td><td class="num">${rp(370015)}</td><td><span class="badge b-bad">Kursi sudah terjual</span> <button class="btn btn-text btn-sm">Catat untuk refund</button></td></tr></tbody></table></div></section>
+      <section class="card panel"><h2>Tidak cocok (3)</h2><p class="hint" style="margin:0">Mutasi Rp500.000, Rp1.250.000, Rp75.000 tanpa pesanan yang sesuai. Biasanya pembayaran cargo di loket atau transfer non-tiket.</p></section>`);
+  },
+  mount(){
+    mountAdmin();
+    const s=$('#sample'); if(s) s.onclick=()=>{S.st['admin-rekonsiliasi']='result';render();};
+    const m=$('#mut'); if(m) m.onchange=e=>{ const f=e.target.files[0]; if(!f) return; S.st['admin-rekonsiliasi'] = /\.(csv|xlsx?)$/i.test(f.name)?'result':'badformat'; render(); };
+    const ag=$('#again'); if(ag) ag.onclick=()=>{S.st['admin-rekonsiliasi']='upload';render();};
+    const ap=$('#appr-all'); if(ap) ap.onclick=()=>{ap.disabled=true;ap.textContent='25 pesanan lunas';toast('25 pesanan lunas. 25 e-ticket terkirim.','ok');};
+  }
+};
+
+/* L-12 Manifest & boarding */
+const MANIFEST = [['1B','Andi Kurniawan','Pool Cawang','Lunas'],['1C','Maya Putri','Pool Cawang','Lunas'],['2A','Joko Santoso','Pool Cawang','Lunas'],['2B','Lina Marlina','Pool Cawang','Lunas'],['3A','Fajar Nugraha','Bekasi Timur','Lunas'],['3D','Siti Rahma','Pool Cawang','Lunas'],['6B','Rina Susanti','Pool Cawang','Lunas'],['7C','Dimas Pratama','Pool Cawang','Lunas'],['8B','Yusuf Hakim','Bekasi Timur','Menunggu verifikasi']];
+SCREENS['admin-manifest'] = {
+  side:'admin', code:'L-12', title:'Manifest & boarding', refs:'FR-36–39 · EX-07 · R1',
+  states:[{id:'normal',label:'Manifest'},{id:'scan',label:'Mode scan'}],
+  render(){
+    const st = S.st['admin-manifest'] || 'normal';
+    const scan = st==='scan';
+    const status = id => S.boarded.has(id) ? '<span class="badge b-ok">Naik</span>' : (S.noShow? '<span class="badge b-bad">No-show</span>' : '<span class="badge b-neutral">Belum naik</span>');
+    const table = `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Kursi</th><th>Nama</th><th>Naik di</th><th>Bayar</th><th>Boarding</th></tr></thead><tbody>${MANIFEST.map(m=>`<tr><td class="mono">${m[0]}</td><td>${m[1]}</td><td>${m[2]}</td><td>${m[3]==='Lunas'?'<span class="badge b-ok">Lunas</span>':'<span class="badge b-warn">Belum lunas</span>'}</td><td>${status(m[0])}</td></tr>`).join('')}<tr><td colspan="5" class="hint">+ 26 penumpang lain · 35 dari 40 kursi terisi</td></tr></tbody></table></div>`;
+    const res = S.scanRes;
+    const scanUI = `<section class="card scan-panel phone-ui"><div class="scan-view">Arahkan kamera ke QR e-ticket</div>
+      ${res?`<div class="scan-result ${res.ok?'ok':'bad'}" role="status">${res.ok?'✓':'✕'} ${esc(res.msg)}</div>`:''}
+      <span class="hint">Simulasi hasil scan:</span>
+      <div class="row"><button class="btn btn-secondary btn-sm" data-sim="ok">Tiket valid</button><button class="btn btn-secondary btn-sm" data-sim="other">Jadwal lain</button><button class="btn btn-secondary btn-sm" data-sim="dup">Sudah dipindai</button><button class="btn btn-secondary btn-sm" data-sim="unpaid">Belum lunas</button></div>
+      <ul class="scan-list">${S.scanLog.map(l=>`<li><span>${esc(l)}</span></li>`).join('')}</ul>
+      <button class="btn btn-danger" id="close-b">Tutup boarding</button></section>`;
+    return adminLayout('admin-manifest','Manifest & boarding',`
+      <div class="spread"><div class="row"><select class="select" style="width:auto" aria-label="Jadwal"><option>Sab 14 Nov · 07:00 Jakarta → Bandung</option><option>Sab 14 Nov · 05:30 Jakarta → Bandung</option></select><span class="muted">B 7123 PJA · Driver: Asep S.</span></div>
+      <div class="row"><button class="btn btn-secondary" id="pdfm">Unduh PDF</button><button class="btn btn-primary" id="scanbtn">${scan?'Tutup kamera':'Scan Boarding'}</button></div></div>
+      <div class="${scan?'dash-grid':''}">${scan?scanUI:''}<section class="card">${table}</section></div>`);
+  },
+  mount(){
+    mountAdmin();
+    $('#scanbtn').onclick=()=>{S.st['admin-manifest']= S.st['admin-manifest']==='scan'?'normal':'scan'; S.scanRes=null; render();};
+    $('#pdfm').onclick=()=>toast('Di aplikasi asli, manifest PDF terunduh.');
+    $$('[data-sim]').forEach(b=>b.onclick=()=>{
+      const k=b.dataset.sim;
+      if(k==='ok'){ const next = MANIFEST.find(m=>m[3]==='Lunas'&&!S.boarded.has(m[0])); if(next){S.boarded.add(next[0]); S.scanRes={ok:true,msg:`Naik — ${next[0]}, ${next[1]}`}; S.scanLog.unshift(`${next[0]} ${next[1]} · naik`);} else S.scanRes={ok:false,msg:'Semua penumpang lunas sudah naik'}; }
+      if(k==='other') S.scanRes={ok:false,msg:'Tiket untuk jadwal Sab 14 Nov 13:00'};
+      if(k==='dup') S.scanRes={ok:false,msg:'Sudah naik pukul 06:41'};
+      if(k==='unpaid') S.scanRes={ok:false,msg:'Belum lunas — 8B Yusuf Hakim. Arahkan ke loket.'};
+      render();
+    });
+    const c=$('#close-b'); if(c) c.onclick=()=>{ S.noShow=true; S.st['admin-manifest']='normal'; render(); toast('Boarding ditutup. Kursi yang belum dipindai berstatus No-show.'); };
+  }
+};
+
+/* L-17 Scan koli */
+SCREENS['admin-scan'] = {
+  side:'admin', code:'L-17', title:'Scan status koli', refs:'FR-49–51 · AB-11, AB-12, AB-17 · EX-10, EX-11',
+  states:[{id:'muat',label:'Muat ke jadwal'},{id:'terima',label:'Diterima (bukti)'}],
+  enter(){ const st=S.st['admin-scan']||'muat'; S.cargoAction = st==='terima'?'terima':'muat'; },
+  render(){
+    const act = S.cargoAction;
+    const used = 400 - S.bagSisa;
+    const muat = `<div class="field"><label for="js">Jadwal bus</label><select id="js" class="select"><option>Sab 14 Nov · 07:00 Jakarta → Bandung · B 7123 PJA</option></select></div>
+      <div class="stack" style="gap:6px"><div class="spread"><span class="hint">Bagasi terpakai</span><b class="num">${used} / 400 kg · sisa ${S.bagSisa} kg</b></div><div class="cap"><i style="width:${used/4}%"></i></div></div>
+      <div class="scan-view">Arahkan kamera ke label koli</div>
+      ${S.scanRes?`<div class="scan-result ${S.scanRes.ok?'ok':'bad'}" role="status">${S.scanRes.ok?'✓':'✕'} ${esc(S.scanRes.msg)}</div>`:''}
+      <span class="hint">Simulasi scan:</span>
+      <div class="row"><button class="btn btn-secondary btn-sm" data-c="ok">Koli 12 kg</button><button class="btn btn-secondary btn-sm" data-c="order">Koli belum diterima gudang</button><button class="btn btn-secondary btn-sm" data-c="heavy">Koli 85 kg</button><button class="btn btn-secondary btn-sm" data-c="same">Koli sudah dimuat</button></div>
+      <ul class="scan-list">${S.cargoScans.map(s=>`<li><span class="mono">${s[0]}</span><span>${s[1]}</span></li>`).join('')||'<li class="hint">Belum ada scan</li>'}</ul>`;
+    const terima = `<div class="kv"><span>Resi</span><b class="mono">SLC261113A7K · 2 koli</b></div><div class="kv"><span>Penerima</span><b>Budi Santoso · 0813 •••• 2210</b></div>
+      <div class="field"><label for="foto">Foto barang diterima</label><input type="file" id="foto" accept="image/*" class="input" style="padding-top:9px"></div>
+      ${S.photoDone?'<span class="badge b-ok">Foto terlampir</span>':''}
+      <div class="field"><label>Tanda tangan penerima</label><canvas class="sig" id="sig" width="600" height="180" aria-label="Area tanda tangan"></canvas><button class="btn btn-text btn-sm" id="sig-clear" style="align-self:flex-start">Hapus tanda tangan</button></div>
+      <button class="btn btn-primary btn-block" id="done" ${S.sigDone||S.photoDone?'':'disabled'}>Tandai diterima</button>
+      ${S.sigDone||S.photoDone?'':'<span class="hint">Ambil foto atau tanda tangan dulu.</span>'}`;
+    return adminLayout('admin-scan','Scan status koli',`<section class="card scan-panel phone-ui">
+      <div class="field"><label for="act">Aksi</label><select id="act" class="select"><option value="asal">Diterima gudang asal</option><option value="muat" ${act==='muat'?'selected':''}>Muat ke jadwal bus</option><option value="tiba">Tiba gudang tujuan</option><option value="siap">Siap diambil / Diantar</option><option value="terima" ${act==='terima'?'selected':''}>Diterima</option></select></div>
+      ${act==='terima'?terima:muat}</section>`);
+  },
+  mount(){
+    mountAdmin();
+    $('#act').onchange=e=>{S.cargoAction=e.target.value==='terima'?'terima':'muat'; S.st['admin-scan']=S.cargoAction; S.scanRes=null; render();};
+    let n = 3;
+    $$('[data-c]').forEach(b=>b.onclick=()=>{
+      const k=b.dataset.c;
+      if(k==='ok'){ if(S.bagSisa<12){S.scanRes={ok:false,msg:`Bagasi jadwal ini penuh. Sisa kapasitas ${S.bagSisa} kg.`};} else { S.bagSisa-=12; const id='SLC261113B'+(S.cargoScans.length+2)+'Q-1/1'; S.cargoScans.unshift([id,'Dimuat · 12 kg']); S.scanRes={ok:true,msg:`${id} dimuat ke bus 07:00`}; } }
+      if(k==='order') S.scanRes={ok:false,msg:'Status belum bisa diubah: koli ini belum Diterima gudang asal'};
+      if(k==='heavy') S.scanRes={ok:false,msg:`Bagasi jadwal ini penuh. Sisa kapasitas ${S.bagSisa} kg.`};
+      if(k==='same') S.scanRes={ok:false,msg:'Koli ini sudah berstatus Dimuat ke jadwal 07:00'};
+      render();
+    });
+    const cv=$('#sig'); if(cv){ const ctx=cv.getContext('2d'); ctx.lineWidth=3; ctx.lineCap='round'; ctx.strokeStyle='#14202E'; let drawing=false;
+      const pos=e=>{const r=cv.getBoundingClientRect(); return [(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height];};
+      cv.onpointerdown=e=>{drawing=true;cv.setPointerCapture(e.pointerId);const [x,y]=pos(e);ctx.beginPath();ctx.moveTo(x,y);};
+      cv.onpointermove=e=>{if(!drawing)return;const [x,y]=pos(e);ctx.lineTo(x,y);ctx.stroke(); if(!S.sigDone){S.sigDone=true; const d=$('#done'); if(d) d.disabled=false;}};
+      cv.onpointerup=()=>{drawing=false;};
+      $('#sig-clear').onclick=()=>{ctx.clearRect(0,0,cv.width,cv.height);S.sigDone=false; if(!S.photoDone) $('#done').disabled=true;};
+    }
+    const f=$('#foto'); if(f) f.onchange=e=>{ if(e.target.files[0]){S.photoDone=true; render();} };
+    const d=$('#done'); if(d) d.onclick=()=>{ toast('SLC261113A7K diterima. Email terkirim ke pengirim.','ok'); S.sigDone=false; S.photoDone=false; S.st.lacak='diterima'; };
+  }
+};
+
+/* L-23 Layout kursi */
+SCREENS['admin-layout'] = {
+  side:'admin', code:'L-23', title:'Editor layout kursi', refs:'FR-35 · EX-02',
+  states:[{id:'normal',label:'Normal'}],
+  render(){
+    const lab = {k:'Kursi',kv:'VIP',l:'Lorong',t:'Toilet',p:'Pintu',s:'Sopir'};
+    let n=0; const counter={}; let seatNo = 0;
+    let rowSeat = 0;
+    const cells = S.layout.map((row,ri)=>{ let col=0; return row.map((c,ci)=>{ let txt = c==='l'?'':lab[c]; if(c==='k'||c==='kv'){ n++; counter[c]=(counter[c]||0)+1; } return `<button class="lcell ${c}" data-r="${ri}" data-c="${ci}" aria-label="Baris ${ri+1} kolom ${ci+1}: ${lab[c]}">${c==='l'?'':txt.slice(0,5)}</button>`; }).join(''); }).join('');
+    return adminLayout('admin-layout','Master Ticketing',`<div class="a-tabs" role="tablist">${['rute','armada','jadwal','harga','promo','driver','branch'].map(k=>`<button role="tab" data-mtl="${k}" aria-selected="false">${MASTER[k].label}</button>`).join('')}<button role="tab" aria-selected="true">Layout kursi</button></div><div class="dash-grid lay">
+      <section class="card panel"><div class="spread"><h2>Layout: Big Bus 2-2 · 40 kursi</h2><span class="badge b-info">Dipakai 6 armada</span></div>
+        <div class="row" role="group" aria-label="Jenis sel">${Object.entries(lab).map(([k,v])=>`<button class="btn btn-sm ${S.lMode===k?'btn-primary':'btn-secondary'}" data-m="${k}">${v}</button>`).join('')}</div>
+        <span class="hint">Pilih jenis, lalu klik sel. Nomor kursi dibuat otomatis per baris (1A, 1B, …).</span>
+        <div class="layout-grid" id="lgrid">${cells}</div></section>
+      <aside class="card panel"><h2>Ringkasan</h2><div class="kv"><span>Total kursi</span><b class="num">${n}</b></div><div class="kv"><span>VIP</span><b class="num">${counter.kv||0}</b></div><div class="kv"><span>Eksekutif</span><b class="num">${counter.k||0}</b></div><div class="kv"><span>Kapasitas bagasi</span><b class="num">400 kg</b></div>
+        <button class="btn btn-primary" id="savel">Simpan layout</button>${n===0?'<span class="err-text">Layout minimal punya 1 kursi</span>':''}</aside></div>`);
+  },
+  mount(){
+    mountAdmin();
+    $$('[data-m]').forEach(b=>b.onclick=()=>{S.lMode=b.dataset.m;render();});
+    $$('[data-mtl]').forEach(b=>b.onclick=()=>{S.mt.tiket=b.dataset.mtl;go('admin-master-tiket');});
+    const g=$('#lgrid'); if(g) g.onclick=e=>{const c=e.target.closest('.lcell'); if(!c) return; S.layout[+c.dataset.r][+c.dataset.c]=S.lMode; render();};
+    const s=$('#savel'); if(s) s.onclick=()=>{ const has = S.layout.flat().some(c=>c==='k'||c==='kv'); if(!has){toast('Layout minimal punya 1 kursi','bad');return;} toast('Layout tersimpan. Peta kursi 6 armada ikut berubah untuk jadwal tanpa pesanan.','ok'); };
+  }
+};
+
+/* L-21 Akses */
+SCREENS['admin-akses'] = {
+  side:'admin', code:'L-21', title:'User & hak akses', refs:'FR-03, FR-04 · AB-13',
+  states:[{id:'normal',label:'Normal'}],
+  render(){
+    const menus = ['Dashboard','Verifikasi pembayaran','Rekonsiliasi','Manifest & boarding','Scan koli','Master data','Laporan','Pengaturan'];
+    const roles = [['Admin Ticketing',[1,1,1,1,0,0,1,0]],['Admin Cargo',[1,0,0,0,1,0,1,0]],['Superadmin',[1,1,1,1,1,1,1,1]]];
+    return adminLayout('admin-akses','User & hak akses',`
+      <section class="card panel"><div class="spread"><h2>Matriks hak akses per peran</h2><button class="btn btn-primary btn-sm">Simpan</button></div>
+      <div class="tbl-wrap"><table class="tbl matrix"><thead><tr><th>Menu</th>${roles.map(r=>`<th>${r[0]}</th>`).join('')}</tr></thead><tbody>
+      ${menus.map((m,i)=>`<tr><td>${m}</td>${roles.map((r,j)=>`<td><input type="checkbox" aria-label="${r[0]} ${m}" ${r[1][i]?'checked':''} ${j===2?'disabled':''}></td>`).join('')}</tr>`).join('')}</tbody></table></div></section>
+      <section class="card panel"><div class="spread"><h2>User</h2><button class="btn btn-secondary btn-sm">+ Tambah user</button></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Nama</th><th>Peran</th><th>Branch</th><th>Status</th></tr></thead><tbody>
+      <tr><td>Nina Kartika</td><td>Admin Ticketing</td><td>Bandung</td><td><span class="badge b-ok">Aktif</span></td></tr>
+      <tr><td>Rudi Hartono</td><td>Admin Cargo</td><td>Bandung, Jakarta</td><td><span class="badge b-ok">Aktif</span></td></tr>
+      <tr><td>Wawan Setiadi</td><td>Admin Ticketing</td><td>Jakarta</td><td><span class="badge b-neutral">Nonaktif</span></td></tr></tbody></table></div></section>`);
+  },
+  mount: mountAdmin
+};
+
+
+/* ======================= Master data ======================= */
+const MASTER = {
+  rute:{label:'Rute', code:'L-23', cols:[['kode','Kode'],['asal','Asal'],['tujuan','Tujuan'],['jarak','Jarak (km)'],['est','Estimasi'],['status','Status']],
+    rows:[{kode:'JKT-BDG',asal:'Jakarta',tujuan:'Bandung',jarak:150,est:'2j 45m',status:'Aktif'},{kode:'BDG-JKT',asal:'Bandung',tujuan:'Jakarta',jarak:150,est:'2j 45m',status:'Aktif'},{kode:'JKT-CRB',asal:'Jakarta',tujuan:'Cirebon',jarak:220,est:'4j 00m',status:'Aktif'},{kode:'JKT-TSM',asal:'Jakarta',tujuan:'Tasikmalaya',jarak:270,est:'5j 30m',status:'Aktif'},{kode:'BDG-GRT',asal:'Bandung',tujuan:'Garut',jarak:65,est:'2j 00m',status:'Nonaktif'}],
+    form:[['kode','Kode rute','text',1],['asal','Kota asal','city',1],['tujuan','Kota tujuan','city',1],['jarak','Jarak (km)','number',1],['est','Estimasi waktu','text',1,'Contoh: 2j 45m'],['status','Status','status',1]]},
+  armada:{label:'Armada', cols:[['nopol','No. polisi'],['jenis','Jenis'],['layout','Layout kursi'],['kursi','Kursi'],['bagasi','Bagasi (kg)'],['status','Status']],
+    rows:[{nopol:'B 7123 PJA',jenis:'Big Bus Hino RK8',layout:'Big Bus 2-2 · 40 kursi',kursi:40,bagasi:400,status:'Aktif'},{nopol:'B 7124 PJA',jenis:'Big Bus Hino RK8',layout:'Big Bus 2-2 · 40 kursi',kursi:40,bagasi:400,status:'Aktif'},{nopol:'D 7501 PJ',jenis:'Medium Bus Elf Long',layout:'Medium 2-1 · 18 kursi',kursi:18,bagasi:150,status:'Aktif'},{nopol:'B 7130 PJA',jenis:'Big Bus Mercedes OH',layout:'VIP 2-1 · 30 kursi',kursi:30,bagasi:450,status:'Perawatan'}],
+    form:[['nopol','No. polisi','text',1],['jenis','Jenis kendaraan','text',1],['layout','Layout kursi','sel:Big Bus 2-2 · 40 kursi|VIP 2-1 · 30 kursi|Medium 2-1 · 18 kursi',1,'Kapasitas kursi mengikuti layout'],['bagasi','Kapasitas bagasi (kg)','number',1,'Dipakai saat memuat cargo ke jadwal'],['status','Status','sel:Aktif|Perawatan|Nonaktif',1]]},
+  jadwal:{label:'Jadwal & harga', cols:[['kode','Kode'],['rute','Rute'],['hari','Hari'],['jam','Jam'],['armada','Armada'],['driver','Driver'],['eks','Eksekutif','rp'],['vip','VIP','rp'],['online','Jual online']],
+    rows:[{kode:'J-0530',rute:'JKT-BDG',hari:'Setiap hari',jam:'05:30',armada:'B 7124 PJA',driver:'Ujang R.',eks:150000,vip:'',online:'Dijual'},{kode:'J-0700',rute:'JKT-BDG',hari:'Setiap hari',jam:'07:00',armada:'B 7123 PJA',driver:'Asep S.',eks:150000,vip:185000,online:'Dijual'},{kode:'J-1300',rute:'JKT-BDG',hari:'Sen–Jum',jam:'13:00',armada:'B 7124 PJA',driver:'Dedi K.',eks:150000,vip:'',online:'Dijual'},{kode:'J-1900',rute:'JKT-BDG',hari:'Setiap hari',jam:'19:00',armada:'B 7130 PJA',driver:'Asep S.',eks:150000,vip:185000,online:'Ditutup sementara'},{kode:'J-0600T',rute:'JKT-TSM',hari:'Jum–Min',jam:'06:00',armada:'D 7501 PJ',driver:'Rahmat H.',eks:165000,vip:'',online:'Dijual'}],
+    form:[['kode','Kode jadwal','text',1],['rute','Rute','sel:JKT-BDG|BDG-JKT|JKT-CRB|JKT-TSM',1],['hari','Hari operasi','days',1],['jam','Jam berangkat','time',1],['naik','Titik naik tambahan','text',0,'Contoh: Bekasi Timur +40 menit'],['armada','Armada','sel:B 7123 PJA|B 7124 PJA|B 7130 PJA|D 7501 PJ',1],['driver','Driver','sel:Asep S.|Ujang R.|Dedi K.|Rahmat H.',1],['eks','Harga dasar Eksekutif (Rp)','number',1,'Harga sebelum aturan harga dan promo; sudah termasuk iuran wajib Jasa Raharja'],['vip','Harga dasar VIP (Rp)','number',0,'Kosongkan bila armada tanpa kursi VIP'],['online','Penjualan online','sel:Dijual|Ditutup sementara',1]]},
+  harga:{label:'Aturan harga'},
+  promo:{label:'Promo', cols:[['kode','Kode'],['potongan','Potongan'],['syarat','Syarat'],['periode','Periode'],['kuota','Terpakai / kuota'],['status','Status']],
+    rows:[{kode:'HEMAT20',potongan:'Rp20.000',syarat:'Sen–Kam · semua rute',periode:'1–30 Nov 2026',kuota:'312 / 500',status:'Aktif'},{kode:'MEMBER10',potongan:'10%, maks Rp25.000',syarat:'Khusus member · min. 2 kursi',periode:'1 Nov–31 Des 2026',kuota:'88 / 1.000',status:'Aktif'},{kode:'MUDIK2027',potongan:'Rp30.000',syarat:'JKT-TSM · kelas Eksekutif',periode:'1–20 Mar 2027',kuota:'0 / 300',status:'Terjadwal'}],
+    form:[['kode','Kode promo','text',1,'Huruf besar dan angka, tanpa spasi'],['potongan','Potongan','text',1,'Nominal (Rp20.000) atau persen dengan batas (10%, maks Rp25.000)'],['syarat','Syarat: rute, hari, kelas, member, min. kursi','text',0],['periode','Periode berlaku','text',1],['kuota','Kuota total','number',1],['peruser','Maks pemakaian per user','number',0],['status','Status','sel:Aktif|Terjadwal|Nonaktif',1]]},
+  driver:{label:'Driver', cols:[['nama','Nama'],['sim','SIM'],['berlaku','Berlaku s.d.'],['shift','Shift'],['branch','Branch'],['status','Status']],
+    rows:[{nama:'Asep Sutisna',sim:'B1 Umum',berlaku:'Mar 2028',shift:'Pagi',branch:'Jakarta',status:'Aktif'},{nama:'Ujang Rohman',sim:'B1 Umum',berlaku:'Jan 2027',shift:'Pagi',branch:'Jakarta',status:'Aktif'},{nama:'Dedi Kurnia',sim:'B1 Umum',berlaku:'Des 2026',shift:'Siang',branch:'Bandung',status:'Aktif'},{nama:'Rahmat Hidayat',sim:'B1 Umum',berlaku:'Agu 2029',shift:'Malam',branch:'Jakarta',status:'Cuti'}],
+    form:[['nama','Nama driver','text',1],['sim','Golongan SIM','sel:B1 Umum|B2 Umum',1],['berlaku','SIM berlaku sampai','month',1,'Sistem memberi peringatan 30 hari sebelum habis'],['shift','Shift','sel:Pagi|Siang|Malam',1],['branch','Branch','sel:Jakarta|Bandung|Tasikmalaya',1],['status','Status','sel:Aktif|Cuti|Nonaktif',1]]},
+  branch:{label:'Branch', cols:[['nama','Nama'],['kota','Kota'],['fungsi','Fungsi'],['jam','Jam operasional'],['status','Status']],
+    rows:[{nama:'Pool Cawang',kota:'Jakarta',fungsi:'Loket tiket, titik naik, gudang cargo',jam:'04:00–22:00',status:'Aktif'},{nama:'Bekasi Timur',kota:'Bekasi',fungsi:'Titik naik',jam:'05:00–21:00',status:'Aktif'},{nama:'Pool Pasteur',kota:'Bandung',fungsi:'Loket tiket, titik turun, gudang cargo',jam:'04:00–22:00',status:'Aktif'},{nama:'Pool Tasikmalaya',kota:'Tasikmalaya',fungsi:'Loket tiket, gudang cargo',jam:'05:00–20:00',status:'Aktif'}],
+    form:[['nama','Nama branch','text',1],['kota','Kota','city',1],['fungsi','Fungsi','text',1,'Loket tiket, titik naik/turun, gudang cargo'],['alamat','Alamat','text',1],['jam','Jam operasional','text',1],['status','Status','status',1]]},
+  zona:{label:'Zona', cols:[['kode','Kode'],['asal','Asal'],['tujuan','Tujuan'],['jarak','Jarak (km)'],['est','Estimasi tiba'],['status','Status']],
+    rows:[{kode:'Z-JKT-BDG',asal:'Jakarta',tujuan:'Bandung',jarak:150,est:'1–2 hari',status:'Aktif'},{kode:'Z-BDG-JKT',asal:'Bandung',tujuan:'Jakarta',jarak:150,est:'1–2 hari',status:'Aktif'},{kode:'Z-JKT-CRB',asal:'Jakarta',tujuan:'Cirebon',jarak:220,est:'1–2 hari',status:'Aktif'},{kode:'Z-JKT-TSM',asal:'Jakarta',tujuan:'Tasikmalaya',jarak:270,est:'2 hari',status:'Aktif'}],
+    form:[['kode','Kode zona','text',1],['asal','Kota asal','city',1],['tujuan','Kota tujuan','city',1],['jarak','Jarak (km)','number',1],['est','Estimasi tiba (Reguler)','text',1,'Dipakai untuk peringatan SLA'],['status','Status','status',1]]},
+  tarif:{label:'Tarif', cols:[['zona','Zona'],['layanan','Layanan'],['perkg','Per kg','rp'],['min','Minimum charge','rp'],['pembagi','Pembagi volume'],['contoh','Contoh 10 kg']],
+    rows:[{zona:'Z-JKT-BDG',layanan:'Reguler',perkg:6000,min:25000,pembagi:4000},{zona:'Z-JKT-BDG',layanan:'Kilat',perkg:9000,min:35000,pembagi:4000},{zona:'Z-JKT-CRB',layanan:'Reguler',perkg:7000,min:25000,pembagi:4000},{zona:'Z-JKT-TSM',layanan:'Reguler',perkg:8000,min:30000,pembagi:4000},{zona:'Z-JKT-TSM',layanan:'Kilat',perkg:12000,min:40000,pembagi:4000}],
+    form:[['zona','Zona','sel:Z-JKT-BDG|Z-BDG-JKT|Z-JKT-CRB|Z-JKT-TSM',1],['layanan','Layanan','sel:Reguler|Kilat|Same day',1],['perkg','Tarif per kg (Rp)','number',1],['min','Minimum charge (Rp)','number',1,'Ongkir tidak boleh di bawah nilai ini'],['pembagi','Pembagi volumetrik','number',1,'Berat volume = P × L × T (cm) ÷ pembagi']]},
+  gudang:{label:'Gudang', cols:[['nama','Nama'],['kota','Kota'],['alamat','Alamat'],['jam','Jam operasional'],['status','Status']],
+    rows:[{nama:'Gudang Cawang',kota:'Jakarta',alamat:'Jl. Mayjen Sutoyo (Pool Cawang)',jam:'07:00–20:00',status:'Aktif'},{nama:'Gudang Pasteur',kota:'Bandung',alamat:'Jl. Dr. Djunjunan (Pool Pasteur)',jam:'07:00–21:00',status:'Aktif'},{nama:'Gudang Tasikmalaya',kota:'Tasikmalaya',alamat:'Pool Tasikmalaya',jam:'08:00–18:00',status:'Aktif'}],
+    form:[['nama','Nama gudang','text',1],['kota','Kota','city',1],['alamat','Alamat','text',1],['jam','Jam operasional','text',1,'Tampil di resi dan halaman cek ongkir'],['status','Status','status',1]]},
+  layanan:{label:'Layanan', cols:[['nama','Layanan'],['janji','Janji waktu'],['cutoff','Batas serah barang'],['status','Status']],
+    rows:[{nama:'Reguler',janji:'Sesuai estimasi zona',cutoff:'Sampai jam tutup gudang',status:'Aktif'},{nama:'Kilat',janji:'Tiba hari yang sama, sebelum 21:00',cutoff:'10:00',status:'Aktif'},{nama:'Same day',janji:'Diantar ke alamat hari yang sama',cutoff:'09:00',status:'Nonaktif'}],
+    form:[['nama','Nama layanan','text',1],['janji','Janji waktu','text',1],['cutoff','Batas serah barang','time',0,'Barang setelah jam ini masuk keberangkatan berikutnya'],['status','Status','status',1]]},
+  asuransi:{label:'Konstanta asuransi', cols:[['vendor','Vendor'],['persen','Persentase'],['maks','Nilai barang maks','rp'],['status','Status']],
+    rows:[{vendor:'Asuransi Vendor A',persen:'0,20%',maks:50000000,status:'Aktif'},{vendor:'Asuransi Vendor B',persen:'0,25%',maks:100000000,status:'Nonaktif'}],
+    form:[['vendor','Nama vendor','text',1],['persen','Persentase dari nilai barang','text',1,'Contoh: 0,20%'],['maks','Nilai barang maksimum (Rp)','number',1],['status','Status','status',1,'Hanya satu vendor aktif yang dipakai di cek ongkir']]}
+};
+const RULES = [
+  {prio:1,nama:'Lebaran 2027',berlaku:'15 Mar–25 Mar 2027',rute:'Semua rute',naik:50,status:'Terjadwal'},
+  {prio:2,nama:'Libur Natal dan Tahun Baru',berlaku:'24 Des 2026–1 Jan 2027',rute:'Semua rute',naik:30,status:'Terjadwal'},
+  {prio:3,nama:'Akhir pekan',berlaku:'Setiap Sabtu dan Minggu',rute:'JKT-BDG, BDG-JKT',naik:20,status:'Aktif'},
+  {prio:4,nama:'Hari sepi',berlaku:'Selasa dan Rabu, jadwal 13:00',rute:'JKT-BDG',naik:-10,status:'Aktif'}
+];
+S.mt = {tiket:'jadwal', cargo:'tarif'}; S.drawer = null; S.importErr = false;
+function cellVal(c,r){ const v = r[c[0]]; if(c[0]==='contoh'){ const raw=10*r.perkg; return rp(Math.max(raw,r.min)); } if(c[2]==='rp') return v===''||v==null?'<span class="muted">—</span>':`<span class="num">${rp(v)}</span>`; if(c[0]==='status'||c[0]==='online'){ const ok=['Aktif','Dijual'].includes(v), warn=['Perawatan','Cuti','Terjadwal','Ditutup sementara'].includes(v); return `<span class="badge ${ok?'b-ok':warn?'b-warn':'b-neutral'}">${v}</span>`; } if(c[0]==='kode'||c[0]==='nopol') return `<span class="mono">${esc(v)}</span>`; return esc(v); }
+function masterTable(key){
+  const m = MASTER[key];
+  return `<div class="toolbar"><label class="sr" for="q">Cari</label><input id="q" class="input" placeholder="Cari ${m.label.toLowerCase()}"><span class="muted">${m.rows.length} data</span>
+    <span style="margin-left:auto" class="row"><label class="btn btn-secondary btn-sm" for="imp">Impor Excel</label><input type="file" id="imp" class="sr" accept=".xlsx,.xls,.csv"><button class="btn btn-secondary btn-sm" id="tpl">Unduh template</button><button class="btn btn-primary btn-sm" id="add">+ Tambah ${m.label.toLowerCase()}</button></span></div>
+    ${S.importErr?`<div class="banner bad" role="alert"><div><b>Impor selesai: 48 berhasil, 2 gagal.</b> Baris 14: rute "JKT-SMG" belum ada di master rute. Baris 37: jam "7.00" bukan format 24 jam (07:00). Baris yang gagal tidak dibuat; perbaiki lalu impor ulang.</div></div>`:''}
+    <div class="card tbl-wrap"><table class="tbl"><thead><tr>${m.cols.map(c=>`<th>${c[1]}</th>`).join('')}<th></th></tr></thead><tbody>
+    ${m.rows.map((r,i)=>`<tr>${m.cols.map(c=>`<td>${cellVal(c,r)}</td>`).join('')}<td style="text-align:right"><button class="btn btn-text btn-sm" data-edit="${i}">Ubah</button></td></tr>`).join('')}</tbody></table></div>`;
+}
+function fieldHtml(f, val){
+  const [k,label,type,req,hint] = f; const id='f-'+k; const v = val==null?'':val;
+  let ctl='';
+  if(type==='city') ctl = `<select id="${id}" class="select">${CITIES.map(c=>`<option ${c===v?'selected':''}>${c}</option>`).join('')}</select>`;
+  else if(type==='status') ctl = `<select id="${id}" class="select">${['Aktif','Nonaktif'].map(c=>`<option ${c===v?'selected':''}>${c}</option>`).join('')}</select>`;
+  else if(type.startsWith('sel:')) ctl = `<select id="${id}" class="select">${type.slice(4).split('|').map(c=>`<option ${c===v?'selected':''}>${c}</option>`).join('')}</select>`;
+  else if(type==='days') ctl = `<div class="daychips" id="${id}">${['Sen','Sel','Rab','Kam','Jum','Sab','Min'].map((d,i)=>`<label><input type="checkbox" ${v==='Setiap hari'||(v==='Sen–Jum'&&i<5)||(v==='Jum–Min'&&i>3)||!v?'checked':''}> ${d}</label>`).join('')}</div>`;
+  else ctl = `<input id="${id}" class="input ${type==='number'?'num':''}" type="${type==='number'?'number':type==='time'?'time':type==='month'?'text':'text'}" value="${esc(v)}">`;
+  return `<div class="field"><label for="${id}">${label}${req?'':' <span class="muted">(opsional)</span>'}</label>${ctl}${hint?`<span class="hint">${hint}</span>`:''}<span class="err-text" id="e-${k}" hidden>${label} wajib diisi</span></div>`;
+}
+function openDrawer(key, idx){
+  const m = MASTER[key]; const row = idx==null ? {} : m.rows[idx];
+  const bg = document.createElement('div'); bg.className='drawer-bg'; bg.id='modal';
+  bg.innerHTML = `<aside class="drawer" role="dialog" aria-modal="true" aria-label="${idx==null?'Tambah':'Ubah'} ${m.label}"><div class="spread"><h3>${idx==null?'Tambah':'Ubah'} ${m.label.toLowerCase()}</h3><button class="btn btn-text" id="d-x" aria-label="Tutup">✕</button></div>
+    ${key==='jadwal'&&idx!=null?'<div class="banner warn"><div>Jadwal ini punya 35 pesanan Lunas. Armada hanya bisa diganti ke layout dengan kursi sama atau lebih banyak.</div></div>':''}
+    ${m.form.map(f=>fieldHtml(f,row[f[0]])).join('')}
+    <div class="foot">${idx!=null?'<button class="btn btn-danger" id="d-off" style="margin-right:auto">Nonaktifkan</button>':''}<button class="btn btn-secondary" id="d-cancel">Batal</button><button class="btn btn-primary" id="d-save">Simpan</button></div></aside>`;
+  $('#frame').appendChild(bg); const first = bg.querySelector('input,select'); if(first) first.focus();
+  const close=()=>bg.remove();
+  $('#d-x',bg).onclick=close; $('#d-cancel',bg).onclick=close; bg.onclick=e=>{if(e.target===bg)close();};
+  const off=$('#d-off',bg); if(off) off.onclick=()=>{ if(row.status!==undefined) row.status='Nonaktif'; if(row.online!==undefined) row.online='Ditutup sementara'; close(); render(); toast(`${m.label} dinonaktifkan. Data lama tetap tersimpan di riwayat.`); };
+  $('#d-save',bg).onclick=()=>{
+    let ok=true; const data={...row};
+    m.form.forEach(f=>{ const el=$('#f-'+f[0],bg); if(f[2]==='days'){ data[f[0]] = row[f[0]]||'Setiap hari'; return; } const v = el.value.trim(); const e=$('#e-'+f[0],bg); const bad = f[3] && !v; e.hidden=!bad; if(el.classList) el.classList.toggle('err',bad); if(bad) ok=false; data[f[0]] = f[2]==='number' && v!=='' ? +v : v; });
+    if(!ok) return;
+    if(key==='jadwal' && data.vip && data.eks && data.vip < data.eks){ const e=$('#e-vip',bg); e.textContent='Harga VIP tidak boleh di bawah harga Eksekutif'; e.hidden=false; return; }
+    if(idx==null) m.rows.unshift(data); else m.rows[idx]=data;
+    close(); render(); toast(`${m.label} tersimpan. Perubahan tercatat di log aktivitas.`,'ok');
+  };
+}
+function hargaTab(){
+  const base = 150000;
+  const days = [['Jum','13 Nov',0],['Sab','14 Nov',20],['Min','15 Nov',20],['Sen','16 Nov',0],['Sel','17 Nov',0],['Rab','18 Nov',0],['Kam','19 Nov',0],['Jum','24 Des',30],['Sab','26 Des',30],['Min','27 Des',30],['Sen','28 Des',30],['Sel','16 Mar',50],['Rab','17 Mar',50],['Kam','18 Mar',50]];
+  return `<div class="toolbar"><span class="muted">Harga akhir = harga dasar jadwal × (1 + aturan). Bila beberapa aturan berlaku, yang dipakai hanya prioritas teratas.</span><button class="btn btn-primary btn-sm" style="margin-left:auto" id="add-rule">+ Tambah aturan</button></div>
+  <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Prioritas</th><th>Nama aturan</th><th>Berlaku</th><th>Rute</th><th>Penyesuaian</th><th>Status</th><th></th></tr></thead><tbody>
+  ${RULES.map(r=>`<tr><td><span class="prio">${r.prio}</span></td><td><b>${r.nama}</b></td><td>${r.berlaku}</td><td>${r.rute}</td><td class="num"><span class="badge ${r.naik>0?'b-accent':'b-ok'}">${r.naik>0?'+':''}${r.naik}%</span></td><td><span class="badge ${r.status==='Aktif'?'b-ok':'b-warn'}">${r.status}</span></td><td style="text-align:right"><button class="btn btn-text btn-sm">Ubah</button></td></tr>`).join('')}</tbody></table></div>
+  <section class="card panel"><div class="spread"><h2>Pratinjau harga sebelum disimpan</h2><div class="row"><select class="select" style="width:auto;height:36px" aria-label="Jadwal"><option>J-0700 JKT-BDG · Eksekutif ${rp(base)}</option><option>J-0700 JKT-BDG · VIP ${rp(185000)}</option></select></div></div>
+  <div class="cal">${days.map(d=>`<div class="${d[2]>=30?'hi':d[2]>0?'up':''}"><small>${d[0]}, ${d[1]}</small><b class="num">${rp(base*(1+d[2]/100))}</b><small>${d[2]?`+${d[2]}% · ${d[2]===20?'Akhir pekan':d[2]===30?'Natal–Tahun Baru':'Lebaran'}`:'Harga dasar'}</small></div>`).join('')}</div>
+  <span class="hint">26 Des jatuh hari Sabtu: aturan Akhir pekan (+20%) dan Natal–Tahun Baru (+30%) sama-sama berlaku, yang dipakai +30% karena prioritas lebih tinggi.</span></section>`;
+}
+function masterScreen(side){
+  const keys = side==='tiket' ? ['rute','armada','jadwal','harga','promo','driver','branch'] : ['zona','tarif','gudang','layanan','asuransi'];
+  const cur = S.mt[side];
+  const id = 'admin-master-'+side;
+  return adminLayout(id, side==='tiket'?'Master Ticketing':'Master Cargo', `
+    <div class="a-tabs" role="tablist">${keys.map(k=>`<button role="tab" data-mt="${k}" aria-selected="${cur===k}">${MASTER[k].label}</button>`).join('')}${side==='tiket'?'<button role="tab" data-go="admin-layout" aria-selected="false">Layout kursi</button>':''}</div>
+    ${cur==='harga' ? hargaTab() : masterTable(cur)}`);
+}
+function mountMaster(side){
+  mountAdmin();
+  $$('[data-mt]').forEach(b=>b.onclick=()=>{S.mt[side]=b.dataset.mt; S.importErr=false; render();});
+  const add=$('#add'); if(add) add.onclick=()=>openDrawer(S.mt[side]);
+  $$('[data-edit]').forEach(b=>b.onclick=()=>openDrawer(S.mt[side], +b.dataset.edit));
+  const imp=$('#imp'); if(imp) imp.onchange=e=>{ if(e.target.files[0]){ S.importErr=true; render(); } };
+  const tpl=$('#tpl'); if(tpl) tpl.onclick=()=>toast('Di aplikasi asli, template Excel terunduh.');
+  const q=$('#q'); if(q) q.oninput=e=>{ const t=e.target.value.toLowerCase(); $$('.tbl tbody tr').forEach(tr=>{ tr.hidden = t && !tr.textContent.toLowerCase().includes(t); }); };
+  const ar=$('#add-rule'); if(ar) ar.onclick=()=>toast('Form aturan: nama, rentang tanggal atau hari, rute, kelas, penyesuaian %, prioritas.');
+}
+SCREENS['admin-master-tiket'] = { side:'admin', code:'L-23', title:'Master Ticketing', refs:'FR-34, FR-35 · AB-04, AB-06 · EX-02–04, EX-17 · TK-10–15',
+  states:[{id:'normal',label:'Normal'},{id:'importerr',label:'Impor sebagian gagal'}],
+  enter(){ S.importErr = S.st['admin-master-tiket']==='importerr'; },
+  render(){ return masterScreen('tiket'); }, mount(){ mountMaster('tiket'); } };
+SCREENS['admin-master-cargo'] = { side:'admin', code:'L-23', title:'Master Cargo', refs:'FR-34 · AB-08, AB-09, AB-17 · CG-09–13',
+  states:[{id:'normal',label:'Normal'},{id:'importerr',label:'Impor sebagian gagal'}],
+  enter(){ S.importErr = S.st['admin-master-cargo']==='importerr'; },
+  render(){ return masterScreen('cargo'); }, mount(){ mountMaster('cargo'); } };
+
+/* L-18 Laporan */
+SCREENS['admin-laporan'] = { side:'admin', code:'L-18', title:'Laporan', refs:'FR-54, FR-55 · AB-13 · RP-01',
+  states:[{id:'tiket',label:'Tiket'},{id:'cargo',label:'Cargo'},{id:'empty',label:'Hasil kosong'}],
+  render(){
+    const st = S.st['admin-laporan']||'tiket'; const tiket = st!=='cargo'; const empty = st==='empty';
+    if(S.role==='cargo' && tiket && !empty){ S.st['admin-laporan']='cargo'; return this.render(); }
+    const rowsT = [['JKT-BDG','4.812','Rp 761,4 jt','81%','22'],['BDG-JKT','4.390','Rp 694,2 jt','76%','18'],['JKT-TSM','1.205','Rp 210,8 jt','69%','9'],['JKT-CRB','988','Rp 160,1 jt','64%','6']];
+    const rowsC = [['Z-JKT-BDG','Reguler','2.140','Rp 128,4 jt','96,8%'],['Z-JKT-BDG','Kilat','612','Rp 61,9 jt','98,1%'],['Z-JKT-TSM','Reguler','804','Rp 70,2 jt','91,5%'],['Z-JKT-CRB','Reguler','455','Rp 33,6 jt','95,0%']];
+    return adminLayout('admin-laporan','Laporan',`
+      <div class="a-tabs" role="tablist">${S.role!=='cargo'?`<button role="tab" data-rt="tiket" aria-selected="${tiket}">Tiket</button>`:''}${S.role!=='tiket'?`<button role="tab" data-rt="cargo" aria-selected="${!tiket}">Cargo</button>`:''}</div>
+      <div class="toolbar"><select class="select" style="width:auto;height:38px" aria-label="Periode"><option>Oktober 2026</option><option>September 2026</option><option>Kustom</option></select><select class="select" style="width:auto;height:38px" aria-label="${tiket?'Rute':'Zona'}"><option>${tiket?'Semua rute':'Semua zona'}</option></select><select class="select" style="width:auto;height:38px" aria-label="Branch"><option>${S.role==='super'?'Semua branch':'Bandung'}</option></select><select class="select" style="width:auto;height:38px" aria-label="Status"><option>${tiket?'Lunas':'Semua status'}</option></select>
+        <span class="row" style="margin-left:auto"><button class="btn btn-secondary btn-sm" ${empty?'disabled':''} id="xl">Unduh Excel</button><button class="btn btn-secondary btn-sm" ${empty?'disabled':''} id="pf">Unduh PDF</button></span></div>
+      ${empty?'<div class="card empty"><h3>Tidak ada data untuk filter ini.</h3><p>Ubah periode atau status. Tombol unduh aktif lagi bila ada data.</p><span class="hint">Tidak ada data untuk diunduh</span></div>':`
+      <div class="rpt-grid">${(tiket?[['Pendapatan','Rp 1,83 M'],['Tiket lunas','11.395'],['Okupansi','76%'],['No-show','55']]:[['Pendapatan','Rp 294,1 jt'],['Resi','4.011'],['Tepat estimasi','95,9%'],['Klaim','2']]).map(k=>`<div class="card kpi"><span>${k[0]}</span><b class="num">${k[1]}</b><small>Oktober 2026</small></div>`).join('')}</div>
+      <div class="card tbl-wrap"><table class="tbl"><thead><tr>${(tiket?['Rute','Tiket lunas','Pendapatan','Okupansi','No-show']:['Zona','Layanan','Resi','Pendapatan','Tepat estimasi']).map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${(tiket?rowsT:rowsC).map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'num':'mono'}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+      <span class="hint">Data contoh. Total laporan sama dengan daftar transaksi berfilter yang sama.</span>`}`);
+  },
+  mount(){ mountAdmin(); $$('[data-rt]').forEach(b=>b.onclick=()=>{S.st['admin-laporan']=b.dataset.rt;render();}); ['xl','pf'].forEach(i=>{const b=$('#'+i); if(b) b.onclick=()=>toast('Di aplikasi asli, berkas laporan terunduh.');}); }
+};
+
+/* L-20 Pengaturan umum */
+SCREENS['admin-pengaturan'] = { side:'admin', code:'L-20', title:'Pengaturan umum', refs:'FR-01, FR-02 · AB-01, AB-03–05 · GS-01–03',
+  states:[{id:'normal',label:'Normal'}],
+  render(){
+    return adminLayout('admin-pengaturan','Pengaturan umum',`<div class="dash-grid">
+      <section class="card panel"><h2>Identitas</h2><div class="fgrid">
+        <div class="field"><label for="g-nama">Nama aplikasi</label><input id="g-nama" class="input" value="Shunlu"></div><div class="field"><label for="g-pt">Nama perusahaan (rekening, dokumen)</label><input id="g-pt" class="input" value="PT Primajaya Transportasi"></div>
+        <div class="field"><label for="g-warna">Warna brand</label><div class="row" style="flex-wrap:nowrap"><input id="g-warna" type="color" value="#0F5C4D" style="width:48px;height:44px;border:1px solid var(--line);border-radius:8px;padding:2px"><input class="input mono" value="#0F5C4D" aria-label="Kode warna"></div></div>
+        <div class="field" style="grid-column:1/-1"><label for="g-logo">Logo</label><input id="g-logo" type="file" class="input" style="padding-top:9px" accept=".png,.svg,.jpg"><span class="hint">PNG, SVG, atau JPG, maks 2 MB. Dipakai di website, e-ticket, dan resi.</span></div></div>
+        <h2>Rekening pembayaran</h2>
+        <div class="tbl-wrap"><table class="tbl"><tbody><tr><td><b>BCA</b> 123 456 7890</td><td>a.n. PT Primajaya Transportasi</td><td><span class="badge b-ok">Tampil</span></td></tr><tr><td><b>Mandiri</b> 137 000 123 4567</td><td>a.n. PT Primajaya Transportasi</td><td><span class="badge b-ok">Tampil</span></td></tr><tr><td><b>BRI</b> 0012 01 000123 30 1</td><td>a.n. PT Primajaya Transportasi</td><td><span class="badge b-neutral">Disembunyikan</span></td></tr></tbody></table></div>
+        <h2>Kontak dan media sosial</h2><div class="fgrid"><div class="field"><label for="g-wa1">WhatsApp CS Tiket</label><input id="g-wa1" class="input num" value="0812 0000 0000"></div><div class="field"><label for="g-wa2">WhatsApp CS Cargo</label><input id="g-wa2" class="input num" value="0812 0000 0001"></div><div class="field"><label for="g-ig">Instagram</label><input id="g-ig" class="input" value="@shunlu.id"></div><div class="field"><label for="g-fb">Facebook</label><input id="g-fb" class="input" value="Shunlu Indonesia"></div></div></section>
+      <section class="card panel"><h2>Aturan penjualan tiket</h2>
+        <div class="field"><label for="g-hold">Kunci kursi saat dipilih (menit)</label><input id="g-hold" class="input num" type="number" value="10"></div>
+        <div class="field"><label for="g-pay">Batas waktu bayar (menit)</label><input id="g-pay" class="input num" type="number" value="30"></div>
+        <div class="field"><label for="g-close">Tutup penjualan online sebelum berangkat (jam)</label><input id="g-close" class="input num" type="number" value="2"></div>
+        <div class="field"><label for="g-max">Maks kursi per pesanan</label><input id="g-max" class="input num" type="number" value="6"></div>
+        <div class="field"><label for="g-ahead">Pemesanan paling jauh (hari ke depan)</label><input id="g-ahead" class="input num" type="number" value="60"></div>
+        <label class="switch"><input type="checkbox" checked> Kode unik 3 digit di nominal transfer</label>
+        <h2>Peringatan SLA</h2>
+        <div class="field"><label for="g-sla">Verifikasi pembayaran lebih dari (menit)</label><input id="g-sla" class="input num" type="number" value="30"></div>
+        <button class="btn btn-primary" id="g-save">Simpan pengaturan</button></section></div>`);
+  },
+  mount(){ mountAdmin(); $('#g-save').onclick=()=>toast('Pengaturan tersimpan. Berlaku untuk pesanan baru.','ok'); }
+};
+
+/* L-22 CMS */
+SCREENS['admin-cms'] = { side:'admin', code:'L-22', title:'CMS', refs:'FR-10–12 · AB-14 · CP-09–15',
+  states:[{id:'konten',label:'Konten'},{id:'rating',label:'Rating'},{id:'log',label:'Log aktivitas'}],
+  render(){
+    const st = S.st['admin-cms']||'konten';
+    const tabs = [['konten','Konten'],['media','Media library'],['member','Member'],['rating','Rating'],['log','Log aktivitas']];
+    let body='';
+    if(st==='konten') body = `<div class="toolbar"><select class="select" style="width:auto;height:38px" aria-label="Jenis"><option>Semua jenis</option><option>Promo</option><option>Berita</option><option>FAQ</option><option>Halaman</option></select><button class="btn btn-primary btn-sm" style="margin-left:auto">+ Konten baru</button></div>
+      <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Judul</th><th>Jenis</th><th>Diubah</th><th>Status</th></tr></thead><tbody>
+      <tr><td><b>Hemat Rp20.000 Senin–Kamis</b></td><td>Promo</td><td>12 Nov · Nina K.</td><td><span class="badge b-ok">Terbit</span></td></tr>
+      <tr><td><b>Jadwal tambahan libur Natal</b></td><td>Berita</td><td>12 Nov · Nina K.</td><td><span class="badge b-neutral">Draf</span></td></tr>
+      <tr><td><b>Berapa lama kursi saya ditahan?</b></td><td>FAQ</td><td>10 Nov · Superadmin</td><td><span class="badge b-ok">Terbit</span></td></tr>
+      <tr><td><b>Tentang Primajaya</b></td><td>Halaman</td><td>3 Nov · Superadmin</td><td><span class="badge b-ok">Terbit</span></td></tr>
+      <tr><td><b>Promo Lebaran 2026</b></td><td>Promo</td><td>2 Apr · Superadmin</td><td><span class="badge b-neutral">Arsip</span></td></tr></tbody></table></div>`;
+    if(st==='media') body = `<div class="toolbar"><label class="btn btn-primary btn-sm" for="mu" style="margin-left:auto">Unggah gambar</label><input id="mu" type="file" class="sr" accept="image/*"></div><div class="rpt-grid">${['banner-natal.jpg','armada-big-bus.jpg','pool-cawang.jpg','promo-hemat.png'].map((n,i)=>`<figure class="card" style="margin:0;padding:8px"><div style="height:90px;border-radius:8px;background:linear-gradient(120deg,${['#0F5C4D,#1F8A73','#14202E,#4A5A6C','#11532D,#1F8A4C','#8A5A00,#F5A524'][i]})"></div><figcaption class="hint" style="padding-top:6px">${n} · dipakai di ${[2,3,1,2][i]} konten</figcaption></figure>`).join('')}</div>`;
+    if(st==='member') body = `<div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Nama</th><th>Email</th><th>Bergabung</th><th>Pesanan</th><th>Status</th></tr></thead><tbody><tr><td>Rina Susanti</td><td>rina.s@contoh.id</td><td>2 Nov 2026</td><td class="num">4</td><td><span class="badge b-ok">Aktif</span></td></tr><tr><td>Dimas Pratama</td><td>dimas.p@contoh.id</td><td>5 Nov 2026</td><td class="num">1</td><td><span class="badge b-ok">Aktif</span></td></tr><tr><td>Akun uji</td><td>test@contoh.id</td><td>1 Nov 2026</td><td class="num">0</td><td><span class="badge b-neutral">Nonaktif</span></td></tr></tbody></table></div>`;
+    if(st==='rating') body = `<div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Rating</th><th>Ulasan</th><th>Kode booking</th><th>Tampil</th></tr></thead><tbody><tr><td class="num">★ 5</td><td>Bisa pilih kursi jendela dan e-ticket langsung masuk email.</td><td class="mono">SL7K2M</td><td><label class="switch"><input type="checkbox" checked aria-label="Tampilkan rating SL7K2M"></label></td></tr><tr><td class="num">★ 4</td><td>Berangkat tepat waktu, AC dingin.</td><td class="mono">SL3D1F</td><td><label class="switch"><input type="checkbox" checked aria-label="Tampilkan rating SL3D1F"></label></td></tr><tr><td class="num">★ 1</td><td>Isi tidak pantas (disembunyikan)</td><td class="mono">SL0X9Y</td><td><label class="switch"><input type="checkbox" aria-label="Tampilkan rating SL0X9Y"></label></td></tr></tbody></table></div><span class="hint">Rating yang disembunyikan tidak tampil dan tidak dihitung di rata-rata beranda.</span>`;
+    if(st==='log') body = `<div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Waktu</th><th>User</th><th>Aksi</th><th>Objek</th></tr></thead><tbody><tr><td class="num">13 Nov 14:58</td><td>Nina K.</td><td>Menyetujui pembayaran</td><td class="mono">SL7K2M</td></tr><tr><td class="num">13 Nov 14:40</td><td>Superadmin</td><td>Mengubah aturan harga</td><td>Akhir pekan +15% → +20%</td></tr><tr><td class="num">13 Nov 11:12</td><td>Rudi H.</td><td>Mengoreksi status cargo (alasan: salah scan)</td><td class="mono">SLC261112K8M</td></tr><tr><td class="num">12 Nov 19:05</td><td>Superadmin</td><td>Menonaktifkan user</td><td>Wawan Setiadi</td></tr></tbody></table></div>`;
+    return adminLayout('admin-cms','CMS',`<div class="a-tabs" role="tablist">${tabs.map(t=>`<button role="tab" data-cms="${t[0]}" aria-selected="${st===t[0]}">${t[1]}</button>`).join('')}</div>${body}`);
+  },
+  mount(){ mountAdmin(); $$('[data-cms]').forEach(b=>b.onclick=()=>{S.st['admin-cms']=b.dataset.cms;render();}); }
+};
+
+/* ======================= Router & shell ======================= */
+const ORDER_C = ['beranda','jadwal','kursi','penumpang','bayar','eticket','ongkir','resi','lacak'];
+const ORDER_A = ['admin-login','admin-dashboard','admin-verifikasi','admin-rekonsiliasi','admin-manifest','admin-scan','admin-master-tiket','admin-layout','admin-master-cargo','admin-laporan','admin-pengaturan','admin-cms','admin-akses'];
+const NOTES = {
+  cust:{tri:['<b>Desirability:</b> penumpang memilih kursi sendiri dan tahu kapan kursi aman; pengirim melihat posisi barang tanpa chat CS.','<b>Viability:</b> metrik utama penyelesaian pemesanan; target 0 double booking, resi terlacak ≥ 95% (BRD TB-3, TB-4). Baseline belum diukur.','<b>Feasibility:</b> kunci kursi butuh tabel lock + kanal real-time; scan memakai kamera browser (HTTPS).'],
+        hyp:['H1: pesan sampai unggah bukti tanpa bantuan dalam 5 langkah (≥ 4 dari 5 peserta).','H2: nominal berkode unik disalin lengkap (≥ 4 dari 5).']},
+  admin:{tri:['<b>Desirability:</b> admin loket memverifikasi puluhan transfer sekaligus; petugas gudang cukup memindai.','<b>Viability:</b> median verifikasi ≤ 15 menit; 0 pesanan kedaluwarsa yang sudah transfer.','<b>Feasibility:</b> impor CSV mutasi butuh contoh format dari bank Primajaya (memblokir EX-06).'],
+         hyp:['H3: scan 10 koli ≤ 50% waktu input manual.','H4: admin menyetujui kelompok Cocok tanpa cek ulang.']}
+};
+function go(id){ if(!SCREENS[id]) id='beranda'; if(location.hash !== '#'+id){ try{ history.replaceState(null,'','#'+id); }catch(e){} } setScreen(id); window.scrollTo(0,0); }
+function setScreen(id){
+  S.screen = id; S.side = SCREENS[id].side; S.scanRes = null;
+  if(!S.st[id]) S.st[id] = SCREENS[id].states[0].id;
+  enterAndRender();
+}
+function enterAndRender(){ const sc = SCREENS[S.screen]; if(sc.enter) sc.enter(); render(); }
+function render(){
+  const sc = SCREENS[S.screen];
+  const frame = $('#frame');
+  frame.className = 'frame' + (S.device==='mob'?' mobile':'');
+  frame.innerHTML = (sc.side==='cust' ? sc.render() : sc.render()) + '<div class="toast-wrap" id="toasts" aria-live="polite"></div>';
+  $('#side-cust').setAttribute('aria-pressed', sc.side==='cust'); $('#side-admin').setAttribute('aria-pressed', sc.side==='admin');
+  $('#dev-desk').setAttribute('aria-pressed', S.device==='desk'); $('#dev-mob').setAttribute('aria-pressed', S.device==='mob');
+  const pick = $('#screen-pick');
+  pick.innerHTML = '<optgroup label="Customer">' + ORDER_C.map(k=>`<option value="${k}" ${k===S.screen?'selected':''}>${SCREENS[k].code} ${SCREENS[k].title}</option>`).join('') + '</optgroup><optgroup label="Back Office">' + ORDER_A.map(k=>`<option value="${k}" ${k===S.screen?'selected':''}>${SCREENS[k].code} ${SCREENS[k].title}</option>`).join('') + '</optgroup>';
+  $('#states').innerHTML = `<span class="lbl">${sc.code} ${sc.title}</span><span>State:</span>` + sc.states.map(s=>`<button class="chip" data-state="${s.id}" aria-pressed="${S.st[S.screen]===s.id}">${s.label}</button>`).join('') + `<span style="margin-left:auto">Rujukan PRD: ${sc.refs}</span>`;
+  const n = NOTES[sc.side];
+  $('#notes').innerHTML = `<section><h3>Segitiga produk</h3><ul>${n.tri.map(t=>`<li>${t}</li>`).join('')}</ul></section><section><h3>Hipotesis yang diuji</h3><ul>${n.hyp.map(t=>`<li>${t}</li>`).join('')}</ul></section><section><h3>Cara memakai prototype</h3><ul><li>Pindah Customer / Back Office dan Desktop / Ponsel di bar atas.</li><li>Chip State menampilkan kondisi kosong, galat, dan batas dari PRD bagian 10.</li><li>Logo, warna, rekening, nama, dan angka adalah data contoh.</li></ul></section>`;
+  $$('[data-go]', frame).forEach(a=>a.addEventListener('click', e=>{ e.preventDefault(); go(a.dataset.go); }));
+  const bg = $('#burger'); if(bg) bg.onclick=()=>{ const nv=$('#cnav'); nv.classList.toggle('open'); bg.setAttribute('aria-expanded', nv.classList.contains('open')); };
+  if(sc.mount) sc.mount();
+  tick();
+}
+$('#states').addEventListener('click', e=>{ const b=e.target.closest('[data-state]'); if(!b) return; S.st[S.screen]=b.dataset.state;
+  if(S.screen==='kursi'){ S.seatDeadline=null; if(b.dataset.state!=='max'){ if(S.pax>=6) S.pax=2; S.seats=S.seats.slice(0,S.pax);} }
+  if(S.screen==='bayar'){ S.payDeadline=null; }
+  if(S.screen==='admin-verifikasi' && b.dataset.state==='normal') resetQueue();
+  enterAndRender(); });
+$('#screen-pick').onchange = e=>go(e.target.value);
+$('#side-cust').onclick = ()=>go('beranda');
+$('#side-admin').onclick = ()=>go('admin-dashboard');
+$('#dev-desk').onclick = ()=>{S.device='desk';render();};
+$('#dev-mob').onclick = ()=>{S.device='mob';render();};
+
+/* Timer & simulasi real-time */
+function tick(){
+  if(S.screen==='kursi' && S.seatDeadline){
+    const left = S.seatDeadline - Date.now();
+    $$('[data-cd="seat"]').forEach(el=>el.textContent=mmss(left));
+    $$('.timer').forEach(el=>el.classList.toggle('low', left < 60000));
+    if(left<=0 && !$('#modal')){
+      S.seats=[]; refreshSeats();
+      const m = modal('<h3>Waktu memilih kursi habis.</h3><p style="margin:0;color:var(--ink-2)">Kursi sudah dilepas untuk penumpang lain.</p><button class="btn btn-primary" id="m-re">Pilih ulang</button>');
+      $('#m-re', m).onclick=()=>{closeModal(); S.st.kursi='normal'; S.seatDeadline=Date.now()+600000; render();};
+    }
+  }
+  if(S.screen==='bayar' && S.payDeadline){ $$('[data-cd="pay"]').forEach(el=>el.textContent=mmss(S.payDeadline-Date.now())); }
+}
+setInterval(tick, 1000);
+setInterval(()=>{
+  if(S.screen!=='kursi' || S.offline) return;
+  const free = []; for(let r=1;r<=ROWS;r++) COLS.forEach(c=>{const id=r+c; if(!TAKEN.has(id)&&!S.held.has(id)&&!S.seats.includes(id)) free.push(id);});
+  if(S.held.size>3){ const first = S.held.values().next().value; S.held.delete(first); }
+  if(free.length>8) S.held.add(free[Math.floor(Math.random()*free.length)]);
+  refreshSeats();
+}, 4000);
+
+window.addEventListener('hashchange', ()=>{ const h=location.hash.slice(1); if(SCREENS[h] && h!==S.screen) setScreen(h); });
+setScreen(SCREENS[location.hash.slice(1)] ? location.hash.slice(1) : 'beranda');
+</script>
+</body>
+</html>
