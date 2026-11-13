@@ -2,34 +2,47 @@
 const A = { user: null, role: null, profil: null, view: 'dashboard', stopKamera: null };
 const HARI = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 const MENU = [
-  { id: 'dashboard', label: 'Dashboard', roles: ['superadmin', 'demo', 'admin_tiket', 'admin_cargo'] },
-  { grup: 'Ticketing', roles: ['superadmin', 'demo', 'admin_tiket'] },
-  { id: 'verifikasi', label: 'Verifikasi pembayaran', roles: ['superadmin', 'demo', 'admin_tiket'] },
-  { id: 'rekonsiliasi', label: 'Rekonsiliasi mutasi', roles: ['superadmin', 'demo', 'admin_tiket'] },
-  { id: 'manifest', label: 'Manifest & boarding', roles: ['superadmin', 'demo', 'admin_tiket'] },
-  { grup: 'Cargo', roles: ['superadmin', 'demo', 'admin_cargo'] },
-  { id: 'terima', label: 'Terima barang', roles: ['superadmin', 'demo', 'admin_cargo'] },
-  { id: 'scan', label: 'Scan status koli', roles: ['superadmin', 'demo', 'admin_cargo'] },
-  { id: 'serah', label: 'Serah terima', roles: ['superadmin', 'demo', 'admin_cargo'] },
-  { grup: 'Master data', roles: ['superadmin', 'demo'] },
-  { id: 'm-tiket', label: 'Master Ticketing', roles: ['superadmin', 'demo'] },
-  { id: 'm-cargo', label: 'Master Cargo', roles: ['superadmin', 'demo'] },
-  { id: 'layout', label: 'Layout kursi', roles: ['superadmin', 'demo'] },
-  { id: 'laporan', label: 'Laporan', roles: ['superadmin', 'demo', 'admin_tiket', 'admin_cargo'] },
-  { grup: 'Pengaturan', roles: ['superadmin', 'demo'] },
-  { id: 'pengaturan', label: 'Pengaturan umum', roles: ['superadmin', 'demo'] },
-  { id: 'konten', label: 'CMS konten', roles: ['superadmin', 'demo'] },
-  { id: 'user', label: 'User & hak akses', roles: ['superadmin'] },
-  { id: 'log', label: 'Log aktivitas', roles: ['superadmin'] }
+  { id: 'dashboard', label: 'Dashboard', izin: ['dashboard'] },
+  { grup: 'Ticketing' },
+  { id: 'verifikasi', label: 'Verifikasi pembayaran', izin: ['verifikasi'] },
+  { id: 'rekonsiliasi', label: 'Rekonsiliasi mutasi', izin: ['rekonsiliasi'] },
+  { id: 'manifest', label: 'Manifest & boarding', izin: ['manifest'] },
+  { grup: 'Cargo' },
+  { id: 'terima', label: 'Terima barang', izin: ['terima'] },
+  { id: 'scan', label: 'Scan status koli', izin: ['scan'] },
+  { id: 'serah', label: 'Serah terima', izin: ['serah'] },
+  { grup: 'Master data' },
+  { id: 'm-tiket', label: 'Master Ticketing', izin: ['master_lihat', 'master_ubah'] },
+  { id: 'm-cargo', label: 'Master Cargo', izin: ['master_lihat', 'master_ubah'] },
+  { id: 'layout', label: 'Layout kursi', izin: ['master_lihat', 'master_ubah'] },
+  { id: 'laporan', label: 'Laporan', izin: ['laporan'] },
+  { grup: 'Pengaturan' },
+  { id: 'pengaturan', label: 'Pengaturan umum', izin: ['pengaturan_lihat', 'pengaturan_ubah'] },
+  { id: 'konten', label: 'CMS konten', izin: ['konten_lihat', 'konten_ubah'] },
+  { id: 'user', label: 'User & hak akses', izin: ['user'] },
+  { id: 'log', label: 'Log aktivitas', izin: ['log'] }
 ];
-const boleh = id => { const m = MENU.find(x => x.id === id); return m && m.roles.includes(A.role); };
+const IZIN = [
+  ['Umum', [['dashboard', 'Dashboard'], ['laporan', 'Laporan'], ['semua_branch', 'Semua branch (tanpa ini hanya branch yang dipilih per user)']]],
+  ['Ticketing', [['verifikasi', 'Verifikasi pembayaran'], ['rekonsiliasi', 'Rekonsiliasi mutasi'], ['manifest', 'Manifest & scan boarding']]],
+  ['Cargo', [['terima', 'Terima barang & timbang ulang'], ['scan', 'Scan status koli'], ['serah', 'Serah terima']]],
+  ['Master data', [['master_lihat', 'Lihat master, harga, layout'], ['master_ubah', 'Ubah master, harga, layout, koreksi status cargo']]],
+  ['Pengaturan', [['pengaturan_lihat', 'Lihat pengaturan & rekening'], ['pengaturan_ubah', 'Ubah pengaturan & rekening'], ['konten_lihat', 'Lihat CMS'], ['konten_ubah', 'Ubah CMS & rating']]],
+  ['Sistem', [['user', 'Kelola user & hak akses'], ['log', 'Lihat log aktivitas']]]
+];
+const punya = k => A.izin.has(k);
+const tiketOps = () => punya('verifikasi') || punya('rekonsiliasi') || punya('manifest');
+const cargoOps = () => punya('terima') || punya('scan') || punya('serah');
+const izinUbah = key => key === 'konten' ? 'konten_ubah' : key === 'rekening' ? 'pengaturan_ubah' : 'master_ubah';
+const hanyaLihat = (izin, teks) => punya(izin) ? '' : `<div class="banner info no-print"><div><b>Hanya lihat.</b> ${teks}</div></div>`;
+const boleh = id => { const m = MENU.find(x => x.id === id); return !!(m && m.izin && m.izin.some(punya)); };
 
 function shell(judul, inner) {
   $('#app').innerHTML = `<div class="a-wrap"><nav class="a-side no-print" aria-label="Menu back office">${logoHtml('admin.html')}
-    ${MENU.filter(m => m.roles.includes(A.role)).map(m => m.grup ? `<h5>${m.grup}</h5>` : `<a href="#${m.id}" class="${A.view === m.id ? 'on' : ''}">${m.label}${m.id === 'verifikasi' ? '<span class="cnt" id="cnt-v" hidden></span>' : ''}</a>`).join('')}
+    ${MENU.map((m, i) => { if (!m.grup) return boleh(m.id) ? `<a href="#${m.id}" class="${A.view === m.id ? 'on' : ''}">${m.label}${m.id === 'verifikasi' ? '<span class="cnt" id="cnt-v" hidden></span>' : ''}</a>` : ''; const sisa = MENU.slice(i + 1); const j = sisa.findIndex(x => x.grup); return (j < 0 ? sisa : sisa.slice(0, j)).some(x => boleh(x.id)) ? `<h5>${m.grup}</h5>` : ''; }).join('')}
     <a href="#keluar" style="margin-top:auto">Keluar</a></nav>
-    <div class="a-main"><div class="a-top no-print"><h1>${esc(judul)}</h1><span class="muted" style="font-size:13px">${esc(A.profil.nama || '')} · ${({ superadmin: 'Superadmin', admin_tiket: 'Admin Ticketing', admin_cargo: 'Admin Cargo', demo: 'Akun demo' })[A.role]}</span></div>
-    <div class="a-content">${A.role === 'demo' ? '<div class="banner info no-print"><div><b>Akun demo.</b> Anda bisa mencoba verifikasi, rekonsiliasi, boarding, dan cargo. Master data, harga, dan pengaturan hanya bisa dilihat.</div></div>' : ''}<div id="isi" class="stack" style="gap:20px">${inner}</div></div></div></div>`;
+    <div class="a-main"><div class="a-top no-print"><h1>${esc(judul)}</h1><span class="muted" style="font-size:13px">${esc(A.profil.nama || '')} · ${esc(A.namaAkses)}</span></div>
+    <div class="a-content"><div id="isi" class="stack" style="gap:20px">${inner}</div></div></div></div>`;
   if (boleh('verifikasi')) sb.rpc('daftar_verifikasi').then(({ data }) => { const c = $('#cnt-v'); if (c && data && data.length) { c.textContent = data.length; c.hidden = false; } });
 }
 const kosong = (j, i) => `<div class="card empty"><h3>${j}</h3><p>${i}</p></div>`;
@@ -61,9 +74,11 @@ async function mulai() {
   if (!session) { vLogin(); return; }
   A.user = session.user;
   const { data: p } = await sb.from('profiles').select('*').eq('id', A.user.id).maybeSingle();
-  A.profil = p || { nama: A.user.email }; A.role = p && p.aktif ? p.role : null;
-  if (!A.role) {
-    $('#app').innerHTML = `<div style="min-height:100vh;padding:16px"><div class="card login"><span style="color:var(--ink-3)">${IC.lock}</span><h1 style="font-size:20px">Akun belum punya akses.</h1><p class="muted" style="margin:0">${esc(A.user.email)} sudah terdaftar. Minta Superadmin memberi peran dan branch di menu User & hak akses.</p><button class="btn btn-secondary" id="out">Keluar</button></div></div>`;
+  A.profil = p || { nama: A.user.email };
+  const { data: iz } = await sb.rpc('izin_saya');
+  A.izin = new Set((iz && iz.izin) || []); A.namaAkses = iz ? iz.nama : ''; A.role = iz ? 'staf' : null;
+  if (!iz) {
+    $('#app').innerHTML = `<div style="min-height:100vh;padding:16px"><div class="card login"><span style="color:var(--ink-3)">${IC.lock}</span><h1 style="font-size:20px">Akun belum punya akses.</h1><p class="muted" style="margin:0">${esc(A.user.email)} sudah terdaftar. Minta pengelola user memberi hak akses dan branch di menu User & hak akses.</p><button class="btn btn-secondary" id="out">Keluar</button></div></div>`;
     $('#out').onclick = async () => { await sb.auth.signOut(); vLogin(); }; return;
   }
   window.onhashchange = route; route();
@@ -84,7 +99,7 @@ async function route() {
 async function vDashboard() {
   shell('Dashboard', '<div class="skeleton" style="height:300px"></div>');
   const d = await rpc('ringkasan_dashboard', {});
-  const tiket = A.role !== 'admin_cargo', cargo = A.role !== 'admin_tiket';
+  let tiket = tiketOps(), cargo = cargoOps(); if (!tiket && !cargo) { tiket = cargo = true; }
   const k = [
     tiket && { l: 'Pendapatan tiket hari ini', v: rp(d.pendapatan_hari_ini), s: 'Pesanan lunas hari ini' },
     tiket && { l: 'Tiket terjual hari ini', v: d.tiket_terjual, s: 'Kursi lunas' },
@@ -364,12 +379,13 @@ function drawer(key, row, ulang) {
   document.body.appendChild(bg); const close = () => bg.remove();
   $('#x', bg).onclick = close; $('#c', bg).onclick = close; bg.onclick = e => { if (e.target === bg) close(); };
   const del = $('#del', bg); if (del) del.onclick = async () => {
+    if (!punya(izinUbah(key))) { toast('Hak akses Anda hanya bisa melihat data ini.'); return; }
     const { error } = await sb.from(key).delete().eq('id', row.id);
     if (error) { $('#d-e', bg).textContent = error.code === '23503' ? 'Data ini masih dipakai data lain. Nonaktifkan saja.' : error.message; $('#d-e', bg).hidden = false; return; }
     close(); delete FKCACHE[key]; toast('Data dihapus.'); ulang();
   };
   $('#s', bg).onclick = async () => {
-    if (A.role === 'demo') { toast('Akun demo hanya bisa melihat. Perubahan tidak disimpan.'); return; }
+    if (!punya(izinUbah(key))) { toast('Hak akses Anda hanya bisa melihat data ini.'); return; }
     const data = {}; let ok = true;
     m.fields.filter(f => !f.ro).forEach(f => { const v = ambil(f, bg); const bad = !f.opt && f.type !== 'bool' && (v == null || (Array.isArray(v) && !v.length && f.type !== 'titik')); $('#e-' + f.k, bg).hidden = !bad; if (bad) ok = false; data[f.k] = v; });
     if (!ok) return;
@@ -383,13 +399,13 @@ async function vMaster(grup) {
   A.mt = A.mt || {}; A.mt[grup] = A.mt[grup] || GRUP[grup][0]; const cur = A.mt[grup];
   shell(grup === 'tiket' ? 'Master Ticketing' : 'Master Cargo', '<div class="skeleton" style="height:300px"></div>');
   const tabs = `<div class="a-tabs" role="tablist">${GRUP[grup].map(k => `<button role="tab" data-t="${k}" aria-selected="${k === cur}">${MASTER[k].label}</button>`).join('')}</div>`;
-  $('#isi').innerHTML = tabs + await tabelMaster(cur);
+  $('#isi').innerHTML = hanyaLihat(izinUbah(cur), 'Hak akses Anda tidak bisa mengubah data ini.') + tabs + await tabelMaster(cur);
   $$('[data-t]').forEach(b => b.onclick = () => { A.mt[grup] = b.dataset.t; vMaster(grup); });
   bindMaster(cur, () => vMaster(grup));
 }
 async function vMasterTunggal(key, judul) {
   shell(judul, '<div class="skeleton" style="height:300px"></div>');
-  $('#isi').innerHTML = await tabelMaster(key); bindMaster(key, () => vMasterTunggal(key, judul));
+  $('#isi').innerHTML = hanyaLihat(izinUbah(key), 'Hak akses Anda tidak bisa mengubah konten.') + await tabelMaster(key); bindMaster(key, () => vMasterTunggal(key, judul));
 }
 
 /* ---------- Layout kursi ---------- */
@@ -401,7 +417,7 @@ async function vLayout() {
   A.gridId = A.lay; A.lMode = A.lMode || 'k';
   const lab = { k: 'Kursi', kv: 'VIP', l: 'Lorong', t: 'Toilet', p: 'Pintu', s: 'Sopir' };
   const n = A.grid.flat().filter(c => c === 'k' || c === 'kv').length, nv = A.grid.flat().filter(c => c === 'kv').length;
-  $('#isi').innerHTML = `<div class="toolbar"><select id="pl" class="select" style="width:auto;height:38px" aria-label="Layout">${lays.map(l => `<option value="${l.id}" ${l.id === A.lay ? 'selected' : ''}>${esc(l.nama)}</option>`).join('')}<option value="baru" ${A.lay === 'baru' ? 'selected' : ''}>+ Layout baru</option></select>
+  $('#isi').innerHTML = hanyaLihat('master_ubah', 'Hak akses Anda tidak bisa mengubah layout.') + `<div class="toolbar"><select id="pl" class="select" style="width:auto;height:38px" aria-label="Layout">${lays.map(l => `<option value="${l.id}" ${l.id === A.lay ? 'selected' : ''}>${esc(l.nama)}</option>`).join('')}<option value="baru" ${A.lay === 'baru' ? 'selected' : ''}>+ Layout baru</option></select>
       <label class="sr" for="ln">Nama layout</label><input id="ln" class="input" style="max-width:260px;height:38px" value="${esc(cur ? cur.nama : '')}" placeholder="Nama layout"></div>
     <div class="dash-grid lay"><section class="card panel"><div class="row" role="group" aria-label="Jenis sel">${Object.entries(lab).map(([k, v]) => `<button class="btn btn-sm ${A.lMode === k ? 'btn-primary' : 'btn-secondary'}" data-m="${k}">${v}</button>`).join('')}</div>
       <span class="hint">Pilih jenis, lalu klik sel. Baris pertama untuk sopir dan pintu. Nomor kursi dibuat otomatis per baris (1A, 1B, …).</span>
@@ -415,7 +431,7 @@ async function vLayout() {
   $('#addr').onclick = () => { A.grid.push(A.grid[A.grid.length - 1].map(c => c === 'p' || c === 's' ? 'k' : c)); vLayout(); };
   $('#delr').onclick = () => { if (A.grid.length > 2) { A.grid.pop(); vLayout(); } };
   $('#sv').onclick = async () => {
-    if (A.role === 'demo') { toast('Akun demo hanya bisa melihat. Perubahan tidak disimpan.'); return; }
+    if (!punya('master_ubah')) { toast('Hak akses Anda hanya bisa melihat layout.'); return; }
     const nama = $('#ln').value.trim(); if (!nama) { toast('Isi nama layout.', 'bad'); return; }
     let baris = 0; const kursi = [];
     A.grid.forEach((row, r) => { const seats = row.map((c, ci) => [c, ci]).filter(([c]) => c === 'k' || c === 'kv'); if (!seats.length) return; baris = r; seats.forEach(([c, ci], i) => kursi.push({ no: r + String.fromCharCode(65 + i), kelas: c === 'kv' ? 'VIP' : 'Eksekutif', baris: r, kolom: ci })); });
@@ -429,7 +445,7 @@ async function vLayout() {
 
 /* ---------- Laporan ---------- */
 async function vLaporan() {
-  A.lap = A.lap || { jenis: A.role === 'admin_cargo' ? 'cargo' : 'tiket', dari: isoHari(hariIni(), -29), sampai: hariIni() };
+  A.lap = A.lap || { jenis: !tiketOps() && cargoOps() ? 'cargo' : 'tiket', dari: isoHari(hariIni(), -29), sampai: hariIni() };
   const L = A.lap;
   shell('Laporan', '<div class="skeleton" style="height:300px"></div>');
   let rows = [], kpi = [], head = [], csv = [];
@@ -448,7 +464,7 @@ async function vLaporan() {
     kpi = [['Pendapatan', rp(tot.r)], ['Resi', tot.n], ['Diterima', tot.d], ['Belum diterima', tot.n - tot.d]];
     csv = [['resi', 'zona', 'layanan', 'status', 'estimasi_ongkir', 'ongkir_final', 'dibuat']].concat((data || []).map(p => [p.resi, p.zona.kode, p.layanan.nama, p.status, p.estimasi_ongkir, p.ongkir_final ?? '', p.created_at]));
   }
-  $('#isi').innerHTML = `<div class="a-tabs" role="tablist">${A.role !== 'admin_cargo' ? `<button role="tab" data-j="tiket" aria-selected="${L.jenis === 'tiket'}">Tiket</button>` : ''}${A.role !== 'admin_tiket' ? `<button role="tab" data-j="cargo" aria-selected="${L.jenis === 'cargo'}">Cargo</button>` : ''}</div>
+  $('#isi').innerHTML = `<div class="a-tabs" role="tablist">${tiketOps() || !cargoOps() ? `<button role="tab" data-j="tiket" aria-selected="${L.jenis === 'tiket'}">Tiket</button>` : ''}${cargoOps() || !tiketOps() ? `<button role="tab" data-j="cargo" aria-selected="${L.jenis === 'cargo'}">Cargo</button>` : ''}</div>
     <div class="toolbar"><label class="hint" for="d1">Dari</label><input id="d1" type="date" class="input" style="width:auto;height:38px" value="${L.dari}"><label class="hint" for="d2">Sampai</label><input id="d2" type="date" class="input" style="width:auto;height:38px" value="${L.sampai}"><span class="row" style="margin-left:auto"><button class="btn btn-secondary btn-sm" id="dl" ${csv.length > 1 ? '' : 'disabled'}>Unduh CSV (Excel)</button><button class="btn btn-secondary btn-sm" onclick="window.print()">Cetak / PDF</button></span></div>
     ${csv.length > 1 ? `<div class="rpt-grid">${kpi.map(k => `<div class="card kpi"><span>${k[0]}</span><b class="num">${k[1]}</b><small>${tglPendek(L.dari)} – ${tglPendek(L.sampai)}</small></div>`).join('')}</div>
     <div class="card tbl-wrap"><table class="tbl"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((c, i) => `<td class="${i ? 'num' : ''}">${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` : kosong('Tidak ada data untuk periode ini.', 'Ubah rentang tanggal. Tombol unduh aktif lagi bila ada data.')}`;
@@ -461,12 +477,12 @@ async function vLaporan() {
 async function vPengaturan() {
   const { data: s } = await sb.from('settings').select('*').eq('id', 1).single();
   const f = (k, l, t = 'text', h = '') => `<div class="field"><label for="g-${k}">${l}</label><input id="g-${k}" class="input ${t === 'number' ? 'num' : ''}" type="${t}" value="${esc(s[k] ?? '')}">${h ? `<span class="hint">${h}</span>` : ''}</div>`;
-  shell('Pengaturan umum', `<div class="dash-grid"><section class="card panel"><h2>Identitas</h2><div class="fgrid">${f('nama_brand', 'Nama aplikasi')}${f('nama_perusahaan', 'Nama perusahaan (rekening, dokumen)')}${f('wa_tiket', 'WhatsApp CS Tiket', 'text', 'Format 62…')}${f('wa_cargo', 'WhatsApp CS Cargo', 'text', 'Format 62…')}${f('instagram', 'Instagram')}${f('facebook', 'Facebook')}</div><a class="btn btn-secondary" href="#m-tiket" onclick="A.mt={tiket:'rekening'}">Kelola rekening</a></section>
+  shell('Pengaturan umum', hanyaLihat('pengaturan_ubah', 'Hak akses Anda tidak bisa mengubah pengaturan.') + `<div class="dash-grid"><section class="card panel"><h2>Identitas</h2><div class="fgrid">${f('nama_brand', 'Nama aplikasi')}${f('nama_perusahaan', 'Nama perusahaan (rekening, dokumen)')}${f('wa_tiket', 'WhatsApp CS Tiket', 'text', 'Format 62…')}${f('wa_cargo', 'WhatsApp CS Cargo', 'text', 'Format 62…')}${f('instagram', 'Instagram')}${f('facebook', 'Facebook')}</div><a class="btn btn-secondary" href="#m-tiket" onclick="A.mt={tiket:'rekening'}">Kelola rekening</a></section>
     <section class="card panel"><h2>Aturan penjualan tiket</h2>${f('kunci_kursi_menit', 'Kunci kursi saat dipilih (menit)', 'number')}${f('batas_bayar_menit', 'Batas waktu bayar (menit)', 'number')}${f('tutup_jual_jam', 'Tutup penjualan online sebelum berangkat (jam)', 'number')}${f('maks_kursi', 'Maks kursi per pesanan', 'number')}${f('maks_hari_kedepan', 'Pemesanan paling jauh (hari)', 'number')}
       <label class="switch"><input type="checkbox" id="g-kode_unik" ${s.kode_unik ? 'checked' : ''}> Kode unik 3 digit di nominal transfer</label>${f('sla_verifikasi_menit', 'Peringatan verifikasi lebih dari (menit)', 'number')}
       <button class="btn btn-primary" id="sv">Simpan pengaturan</button></section></div>`);
   $('#sv').onclick = async () => {
-    if (A.role === 'demo') { toast('Akun demo hanya bisa melihat. Perubahan tidak disimpan.'); return; }
+    if (!punya('pengaturan_ubah')) { toast('Hak akses Anda hanya bisa melihat pengaturan.'); return; }
     const d = {}; ['nama_brand', 'nama_perusahaan', 'wa_tiket', 'wa_cargo', 'instagram', 'facebook'].forEach(k => d[k] = $('#g-' + k).value.trim() || null);
     ['kunci_kursi_menit', 'batas_bayar_menit', 'tutup_jual_jam', 'maks_kursi', 'maks_hari_kedepan', 'sla_verifikasi_menit'].forEach(k => d[k] = +$('#g-' + k).value);
     d.kode_unik = $('#g-kode_unik').checked; d.updated_at = new Date().toISOString();
@@ -474,20 +490,138 @@ async function vPengaturan() {
     error ? toast(error.code === '23514' ? 'Ada nilai di luar batas yang diizinkan.' : error.message, 'bad') : toast('Pengaturan tersimpan. Berlaku untuk pesanan baru.', 'ok');
   };
 }
-async function vUser() {
-  const [{ data: us }, { data: br }] = await Promise.all([sb.from('profiles').select('*').order('created_at'), sb.from('branch').select('id,nama,kota').order('nama')]);
-  shell('User & hak akses', `<div class="banner info"><div>User baru mendaftar sendiri lewat halaman masuk back office (Daftar akun staf), lalu Superadmin memberi peran dan branch di sini. Admin hanya melihat data branch-nya; Superadmin melihat semua.</div></div>
-    <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Nama</th><th>Email</th><th>Peran</th><th>Branch</th><th>Aktif</th><th></th></tr></thead><tbody>
-    ${us.map(u => `<tr data-u="${u.id}"><td>${esc(u.nama || '')}</td><td>${esc(u.email || '')}</td><td><select class="select" style="height:36px" data-f="role" ${u.id === A.user.id ? 'disabled' : ''}><option value="">Belum ada akses</option>${['superadmin', 'admin_tiket', 'admin_cargo', 'demo'].map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${({ superadmin: 'Superadmin', admin_tiket: 'Admin Ticketing', admin_cargo: 'Admin Cargo', demo: 'Akun demo' })[r]}</option>`).join('')}</select></td>
-      <td><div class="daychips">${br.map(b => `<label><input type="checkbox" value="${b.id}" ${(u.branch_ids || []).includes(b.id) ? 'checked' : ''}> ${esc(b.nama)}</label>`).join('')}</div></td>
-      <td><label class="switch"><input type="checkbox" data-f="aktif" ${u.aktif ? 'checked' : ''} ${u.id === A.user.id ? 'disabled' : ''} aria-label="Aktif"></label></td><td><button class="btn btn-primary btn-sm" data-save>Simpan</button></td></tr>`).join('')}</tbody></table></div>`);
-  $$('[data-save]').forEach(b => b.onclick = async () => {
-    const tr = b.closest('tr'); const id = tr.dataset.u;
-    const d = { branch_ids: $$('.daychips input:checked', tr).map(x => x.value) };
-    if (id !== A.user.id) { d.role = $('[data-f=role]', tr).value || null; d.aktif = $('[data-f=aktif]', tr).checked; }
-    const { error } = await sb.from('profiles').update(d).eq('id', id);
-    error ? toast(error.message, 'bad') : toast('Hak akses tersimpan.', 'ok');
-  });
+function passwordAcak() {
+  const huruf = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789', simbol = '#@!%';
+  const a = new Uint32Array(12); crypto.getRandomValues(a);
+  let p = Array.from(a, x => huruf[x % huruf.length]).join('');
+  return p.slice(0, 5) + simbol[a[0] % simbol.length] + p.slice(6, 9) + String(a[1] % 10) + p.slice(10);
+}
+async function panggilKelola(body) {
+  const { data, error } = await sb.functions.invoke('kelola-user', { body });
+  if (error) { let m = error.message; try { const j = await error.context.json(); m = j.error || m; } catch (e) {} throw new Error(m); }
+  if (data && data.error) throw new Error(data.error);
+  return data;
+}
+const fieldPw = (id, label) => `<div class="field"><label for="${id}">${label}</label><div class="row" style="flex-wrap:nowrap"><input id="${id}" class="input mono" type="text" minlength="8" autocomplete="new-password"><button type="button" class="btn btn-secondary" data-acak="${id}">Buat acak</button></div><span class="hint">Minimal 8 karakter. Bagikan ke user lewat jalur pribadi dan minta ganti setelah masuk.</span></div>`;
+function pasangAcak(root) { $$('[data-acak]', root).forEach(b => b.onclick = () => { $('#' + b.dataset.acak, root).value = passwordAcak(); }); }
+function tampilPassword(email, pw) {
+  const m = modal(`<h3>Password siap dibagikan</h3><p style="margin:0;color:var(--ink-2)">Password ini hanya tampil sekali.</p>
+    <div class="card" style="padding:12px 14px"><div class="kv"><span>Email</span><b class="mono">${esc(email)}</b></div><div class="kv"><span>Password</span><b class="mono">${esc(pw)}</b></div></div>
+    <div class="row" style="justify-content:flex-end"><button class="btn btn-secondary" id="cp">Salin email + password</button><button class="btn btn-primary" id="ok">Selesai</button></div>`);
+  $('#cp', m).onclick = () => copyText(`Email: ${email}\nPassword: ${pw}\nMasuk: ${location.origin}/admin`, 'Data login');
+  $('#ok', m).onclick = () => { closeModal(); vUser(); };
+}
+async function vUser(tab) {
+  A.uTab = tab || A.uTab || 'user';
+  shell('User & hak akses', '<div class="skeleton" style="height:300px"></div>');
+  const [{ data: us }, { data: br }, { data: ha }] = await Promise.all([
+    sb.from('profiles').select('*').order('created_at'),
+    sb.from('branch').select('id,nama,kota').order('nama'),
+    sb.from('hak_akses').select('*').order('sistem', { ascending: false }).order('nama')
+  ]);
+  const hak = id => ha.find(h => h.id === id);
+  const tabs = `<div class="a-tabs" role="tablist"><button role="tab" data-ut="user" aria-selected="${A.uTab === 'user'}">User (${us.length})</button><button role="tab" data-ut="hak" aria-selected="${A.uTab === 'hak'}">Hak akses (${ha.length})</button></div>`;
+  if (A.uTab === 'user') {
+    $('#isi').innerHTML = tabs + `<div class="toolbar"><label class="sr" for="q">Cari user</label><input id="q" class="input" placeholder="Cari nama atau email"><span class="row" style="margin-left:auto"><button class="btn btn-primary btn-sm" id="add">+ Tambah user</button></span></div>
+      <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>User</th><th>Hak akses</th><th>Branch</th><th>Aktif</th><th></th></tr></thead><tbody>
+      ${us.map(u => { const diri = u.id === A.user.id, h = hak(u.hak_akses_id), semua = h && h.izin.includes('semua_branch');
+        return `<tr data-u="${u.id}"><td><b>${esc(u.nama || '')}</b>${diri ? ' <span class="badge b-info">Anda</span>' : ''}<br><span class="hint">${esc(u.email || '')}</span></td>
+        <td><select class="select" style="height:36px;min-width:170px" data-f="hak" ${diri ? 'disabled title="Hak akses sendiri tidak bisa diubah"' : ''}><option value="">Belum ada akses</option>${ha.map(x => `<option value="${x.id}" ${x.id === u.hak_akses_id ? 'selected' : ''}>${esc(x.nama)}</option>`).join('')}</select></td>
+        <td>${semua ? '<span class="badge b-ok">Semua branch</span>' : `<div class="daychips">${br.map(b => `<label><input type="checkbox" value="${b.id}" ${(u.branch_ids || []).includes(b.id) ? 'checked' : ''}> ${esc(b.nama)}</label>`).join('')}</div>`}</td>
+        <td><label class="switch"><input type="checkbox" data-f="aktif" ${u.aktif ? 'checked' : ''} ${diri ? 'disabled' : ''} aria-label="Aktif"></label></td>
+        <td style="white-space:nowrap;text-align:right"><button class="btn btn-secondary btn-sm" data-reset>Reset password</button> <button class="btn btn-primary btn-sm" data-save>Simpan</button></td></tr>`; }).join('')}</tbody></table></div>
+      <span class="hint">Branch dipakai bila hak akses tidak punya izin "Semua branch". User tanpa hak akses bisa masuk tapi tidak melihat menu apa pun.</span>`;
+    $('#q').oninput = e => { const t = e.target.value.toLowerCase(); $$('.tbl tbody tr').forEach(tr => { tr.hidden = t && !tr.textContent.toLowerCase().includes(t); }); };
+    $$('[data-save]').forEach(b => b.onclick = async () => {
+      const tr = b.closest('tr'), id = tr.dataset.u;
+      const d = { branch_ids: $$('.daychips input:checked', tr).map(x => x.value) };
+      if (!$$('.daychips', tr).length) delete d.branch_ids;
+      if (id !== A.user.id) { d.hak_akses_id = $('[data-f=hak]', tr).value || null; d.aktif = $('[data-f=aktif]', tr).checked; }
+      const { error } = await sb.from('profiles').update(d).eq('id', id);
+      error ? toast(pesanGalat(error), 'bad') : (toast('Hak akses user tersimpan.', 'ok'), vUser());
+    });
+    $$('[data-reset]').forEach(b => b.onclick = () => {
+      const u = us.find(x => x.id === b.closest('tr').dataset.u);
+      const m = modal(`<h3>Reset password</h3><p style="margin:0;color:var(--ink-2)">${esc(u.nama || '')} · <span class="mono">${esc(u.email || '')}</span></p>
+        <div class="tabs" role="tablist" style="margin:0"><button role="tab" id="t1" aria-selected="true">Tetapkan password baru</button><button role="tab" id="t2" aria-selected="false">Kirim tautan ke email</button></div>
+        <div id="p1">${fieldPw('npw', 'Password baru')}<div class="row" style="justify-content:flex-end"><button class="btn btn-secondary" data-tutup>Batal</button><button class="btn btn-primary" id="setpw">Simpan password</button></div></div>
+        <div id="p2" hidden><p style="margin:0;color:var(--ink-2)">User menerima email berisi tautan untuk membuat password sendiri. Tautan mengarah ke halaman back office ini.</p><div class="row" style="justify-content:flex-end"><button class="btn btn-secondary" data-tutup>Batal</button><button class="btn btn-primary" id="kirim">Kirim tautan</button></div></div>
+        <span class="err-text" id="re" hidden role="alert"></span>`);
+      pasangAcak(m); $('#npw', m).value = passwordAcak();
+      $$('[data-tutup]', m).forEach(x => x.onclick = closeModal);
+      const pilih = n => { $('#t1', m).setAttribute('aria-selected', n === 1); $('#t2', m).setAttribute('aria-selected', n === 2); $('#p1', m).hidden = n !== 1; $('#p2', m).hidden = n !== 2; };
+      $('#t1', m).onclick = () => pilih(1); $('#t2', m).onclick = () => pilih(2);
+      $('#setpw', m).onclick = async () => {
+        const pw = $('#npw', m).value; const re = $('#re', m);
+        if (pw.length < 8) { re.textContent = 'Password minimal 8 karakter.'; re.hidden = false; return; }
+        try { await panggilKelola({ aksi: 'set_password', id: u.id, password: pw }); closeModal(); tampilPassword(u.email, pw); }
+        catch (e) { re.textContent = pesanGalat(e); re.hidden = false; }
+      };
+      $('#kirim', m).onclick = async () => {
+        const { error } = await sb.auth.resetPasswordForEmail(u.email, { redirectTo: location.origin + '/admin.html' });
+        if (error) { $('#re', m).textContent = error.message; $('#re', m).hidden = false; return; }
+        closeModal(); toast(`Tautan reset dikirim ke ${u.email}.`, 'ok');
+        sb.from('activity_log').insert({ user_id: A.user.id, aksi: 'Mengirim tautan reset password', objek: u.email });
+      };
+    });
+    $('#add').onclick = () => {
+      const m = modal(`<h3>Tambah user</h3>
+        <div class="field"><label for="un">Nama</label><input id="un" class="input" autocomplete="off"></div>
+        <div class="field"><label for="ue">Email</label><input id="ue" class="input" type="email" autocomplete="off"></div>
+        <div class="field"><label for="uh">Hak akses</label><select id="uh" class="select">${ha.map(x => `<option value="${x.id}">${esc(x.nama)}</option>`).join('')}</select><span class="hint" id="uh-d"></span></div>
+        <div class="field" id="ub-f"><label>Branch</label><div class="daychips" id="ub">${br.map(b => `<label><input type="checkbox" value="${b.id}"> ${esc(b.nama)}</label>`).join('')}</div></div>
+        ${fieldPw('up', 'Password awal')}
+        <span class="err-text" id="ue-e" hidden role="alert"></span>
+        <div class="row" style="justify-content:flex-end"><button class="btn btn-secondary" data-tutup>Batal</button><button class="btn btn-primary" id="buat">Buat user</button></div>`);
+      pasangAcak(m); $('#up', m).value = passwordAcak(); $('[data-tutup]', m).onclick = closeModal;
+      const segar = () => { const h = hak($('#uh', m).value); $('#uh-d', m).textContent = h ? h.deskripsi || '' : ''; $('#ub-f', m).hidden = !!(h && h.izin.includes('semua_branch')); };
+      $('#uh', m).onchange = segar; segar();
+      $('#buat', m).onclick = async () => {
+        const er = $('#ue-e', m); const body = { aksi: 'buat', nama: $('#un', m).value.trim(), email: $('#ue', m).value.trim(), hak_akses_id: $('#uh', m).value, branch_ids: $$('#ub input:checked', m).map(x => x.value), password: $('#up', m).value };
+        if (!body.nama || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.email)) { er.textContent = 'Isi nama dan email yang valid.'; er.hidden = false; return; }
+        if (body.password.length < 8) { er.textContent = 'Password minimal 8 karakter.'; er.hidden = false; return; }
+        const btn = $('#buat', m); btn.disabled = true; btn.textContent = 'Membuat…';
+        try { await panggilKelola(body); closeModal(); tampilPassword(body.email, body.password); }
+        catch (e) { er.textContent = pesanGalat(e); er.hidden = false; btn.disabled = false; btn.textContent = 'Buat user'; }
+      };
+    };
+  } else {
+    const jumlah = id => us.filter(u => u.hak_akses_id === id).length;
+    const label = Object.fromEntries(IZIN.flatMap(g => g[1]));
+    $('#isi').innerHTML = tabs + `<div class="toolbar"><span class="muted">Hak akses bawaan tidak bisa diubah. Duplikat untuk membuat versi Anda sendiri.</span><span class="row" style="margin-left:auto"><button class="btn btn-primary btn-sm" id="addh">+ Hak akses baru</button></span></div>
+      <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Hak akses</th><th>Izin</th><th>User</th><th></th></tr></thead><tbody>
+      ${ha.map(h => `<tr data-h="${h.id}"><td><b>${esc(h.nama)}</b> ${h.sistem ? '<span class="badge b-neutral">Bawaan</span>' : ''}<br><span class="hint">${esc(h.deskripsi || '')}</span></td>
+        <td><div class="facs" style="margin:0">${h.izin.map(z => `<span class="badge ${z.endsWith('_ubah') || z === 'user' ? 'b-accent' : 'b-info'}">${esc((label[z] || z).split(' (')[0])}</span>`).join('')}</div></td>
+        <td class="num">${jumlah(h.id)}</td>
+        <td style="white-space:nowrap;text-align:right"><button class="btn btn-text btn-sm" data-dup>Duplikat</button>${h.sistem ? '' : ' <button class="btn btn-secondary btn-sm" data-edit>Ubah</button>'}</td></tr>`).join('')}</tbody></table></div>`;
+    const form = (h, dup) => {
+      const isi = new Set(h ? h.izin : ['dashboard']);
+      const m = modal(`<h3>${h && !dup ? 'Ubah hak akses' : 'Hak akses baru'}</h3>
+        <div class="field"><label for="hn">Nama</label><input id="hn" class="input" value="${esc(h ? (dup ? h.nama + ' (salinan)' : h.nama) : '')}"></div>
+        <div class="field"><label for="hd">Deskripsi</label><input id="hd" class="input" value="${esc(h ? h.deskripsi || '' : '')}"></div>
+        <div style="max-height:46vh;overflow-y:auto;display:flex;flex-direction:column;gap:12px">${IZIN.map(([g, items]) => `<fieldset style="border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:0"><legend style="font-weight:600;font-size:13px;padding:0 4px">${g}</legend>${items.map(([k, l]) => `<label class="check"><input type="checkbox" value="${k}" ${isi.has(k) ? 'checked' : ''}> ${l}</label>`).join('')}</fieldset>`).join('')}</div>
+        <span class="err-text" id="he" hidden role="alert"></span>
+        <div class="row" style="justify-content:flex-end">${h && !dup && !jumlah(h.id) ? '<button class="btn btn-danger" id="hdel" style="margin-right:auto">Hapus</button>' : ''}<button class="btn btn-secondary" data-tutup>Batal</button><button class="btn btn-primary" id="hs">Simpan</button></div>`);
+      m.querySelector('.modal').style.maxWidth = '560px';
+      $('[data-tutup]', m).onclick = closeModal;
+      // izin ubah otomatis menyalakan izin lihat
+      $$('input[type=checkbox]', m).forEach(c => c.onchange = () => { const k = c.value; if (c.checked && k.endsWith('_ubah')) { const l = $(`input[value="${k.replace('_ubah', '_lihat')}"]`, m); if (l) l.checked = true; } });
+      const del = $('#hdel', m); if (del) del.onclick = async () => { const { error } = await sb.from('hak_akses').delete().eq('id', h.id); error ? ($('#he', m).textContent = pesanGalat(error), $('#he', m).hidden = false) : (closeModal(), toast('Hak akses dihapus.'), vUser('hak')); };
+      $('#hs', m).onclick = async () => {
+        const rec = { nama: $('#hn', m).value.trim(), deskripsi: $('#hd', m).value.trim() || null, izin: $$('fieldset input:checked', m).map(x => x.value) };
+        const he = $('#he', m);
+        if (!rec.nama) { he.textContent = 'Nama wajib diisi.'; he.hidden = false; return; }
+        if (!rec.izin.length) { he.textContent = 'Pilih minimal satu izin.'; he.hidden = false; return; }
+        const { error } = h && !dup ? await sb.from('hak_akses').update(rec).eq('id', h.id) : await sb.from('hak_akses').insert(rec);
+        if (error) { he.textContent = error.code === '23505' ? 'Nama hak akses sudah dipakai.' : pesanGalat(error); he.hidden = false; return; }
+        closeModal(); toast('Hak akses tersimpan.', 'ok'); vUser('hak');
+      };
+    };
+    $('#addh').onclick = () => form(null, false);
+    $$('[data-dup]').forEach(b => b.onclick = () => form(ha.find(x => x.id === b.closest('tr').dataset.h), true));
+    $$('[data-edit]').forEach(b => b.onclick = () => form(ha.find(x => x.id === b.closest('tr').dataset.h), false));
+  }
+  $$('[data-ut]').forEach(b => b.onclick = () => vUser(b.dataset.ut));
 }
 async function vLog() {
   const { data } = await sb.from('activity_log').select('*').order('waktu', { ascending: false }).limit(200);

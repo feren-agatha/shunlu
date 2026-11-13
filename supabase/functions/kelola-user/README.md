@@ -1,0 +1,1 @@
+Kode Edge Function `kelola-user` terpasang di project Supabase shunlu (Dashboard > Edge Functions > kelola-user). Aksi: `buat` (nama, email, password, hak_akses_id, branch_ids) dan `set_password` (id, password). Hanya untuk user dengan izin `user`.

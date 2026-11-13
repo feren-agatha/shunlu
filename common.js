@@ -53,7 +53,14 @@ const PESAN_GALAT = {
   resi_tidak_ada: 'Nomor resi tidak ditemukan.',
   belum_siap_diambil: 'Barang belum berstatus siap diambil.',
   bukti_wajib: 'Ambil foto atau tanda tangan penerima dulu.',
-  jadwal_wajib: 'Pilih jadwal bus dulu.'
+  jadwal_wajib: 'Pilih jadwal bus dulu.',
+  email_sudah_terdaftar: 'Email ini sudah terdaftar. Ubah hak aksesnya di daftar user.',
+  password_min_8: 'Password minimal 8 karakter.',
+  email_tidak_valid: 'Email tidak valid.',
+  nama_wajib: 'Nama wajib diisi.',
+  hak_akses_wajib: 'Pilih hak akses.',
+  pengelola_user_terakhir: 'Tidak bisa: ini satu-satunya user aktif yang bisa mengelola user.',
+  belum_login: 'Sesi berakhir. Masuk lagi.'
 };
 function pesanGalat(err) {
   const m = (err && (err.message || err.alasan || err)) + '';
