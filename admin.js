@@ -82,8 +82,9 @@ async function mulai() {
 async function route() {
   if (A.stopKamera) { A.stopKamera(); A.stopKamera = null; }
   closeModal();
+  if (!A.user) { vLogin(); return; }
   const h = location.hash.slice(1) || 'dashboard';
-  if (h === 'keluar') { await sb.auth.signOut(); location.hash = ''; vLogin(); return; }
+  if (h === 'keluar') { window.onhashchange = null; await sb.auth.signOut(); A.user = null; A.izin = new Set(); A.platform = false; history.replaceState(null, '', location.pathname + location.search); vLogin(); return; }
   A.view = h;
   if (!boleh(h)) { shell('Akses ditolak', `<div class="card denied"><span style="color:var(--ink-3)">${IC.lock}</span><h2 style="font-size:18px">Anda tidak punya akses ke halaman ini.</h2><p class="muted" style="margin:0">Hubungi Superadmin bila butuh akses.</p><a class="btn btn-secondary" href="#dashboard">Kembali ke Dashboard</a></div>`); return; }
   const V = { dashboard: vDashboard, verifikasi: vVerifikasi, rekonsiliasi: vRekon, manifest: vManifest, terima: vTerima, scan: vScan, serah: vSerah,
