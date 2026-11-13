@@ -92,6 +92,14 @@ async function route() {
 }
 
 /* ---------- Kerangka & Dashboard ---------- */
+const IKON_GRUP = {
+  Dashboard: '<path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z"/>',
+  Ticketing: '<path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4z"/><path d="M14 5v14" stroke-dasharray="2 2"/>',
+  Cargo: '<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
+  Master: '<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>',
+  Laporan: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  Pengaturan: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'
+};
 const GRUPNAV = [['Dashboard', ['dashboard']], ['Ticketing', ['verifikasi', 'rekonsiliasi', 'manifest']], ['Cargo', ['terima', 'scan', 'serah']], ['Master', ['m-tiket', 'm-cargo', 'layout']], ['Laporan', ['laporan']], ['Pengaturan', ['pengaturan', 'konten', 'user', 'log', 'tenant']]];
 const SUB = {
   dashboard: 'Penjualan, keberangkatan armada, dan peringatan hari ini', verifikasi: 'Cocokkan bukti transfer dengan mutasi, lalu setujui atau tolak',
@@ -110,11 +118,11 @@ const SVG = {
 function shell(judul, inner) {
   const g = GRUPNAV.find(x => x[1].includes(A.view)) || GRUPNAV[0];
   const label = id => (MENU.find(m => m.id === id) || {}).label;
-  const nav = GRUPNAV.filter(x => x[1].some(boleh)).map(([n, ids]) => `<a href="#${ids.find(boleh)}" class="${g[0] === n ? 'on' : ''}">${n}${n === 'Ticketing' ? '<span class="cnt" id="cnt-v" hidden></span>' : ''}</a>`).join('');
+  const nav = GRUPNAV.filter(x => x[1].some(boleh)).map(([n, ids]) => `<a href="#${ids.find(boleh)}" class="${g[0] === n ? 'on' : ''}"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IKON_GRUP[n]}</svg><span class="lf">${n}</span><span class="ls">${{ Dashboard: 'Dasbor', Pengaturan: 'Atur' }[n] || n}</span>${n === 'Ticketing' ? '<span class="cnt" id="cnt-v" hidden></span>' : ''}</a>`).join('');
   const sub = g[1].filter(boleh);
   const ini = (A.profil.nama || A.user.email || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
   $('#app').innerHTML = `<div class="adm"><header class="a-head no-print">${logoHtml('admin.html')}<nav class="pillnav" aria-label="Menu back office">${nav}</nav>
-      <div class="a-icons">${A.platform ? `<select class="input tenant-pil" id="pil-tenant" aria-label="Tenant aktif">${A.tenants.map(t => `<option value="${t.id}" ${t.id === A.tenant.id ? 'selected' : ''}>${esc(t.nama)}${t.aktif ? '' : ' (nonaktif)'}</option>`).join('')}</select>` : ''}<a class="icon-btn" href="index.html?po=${esc(A.tenant.slug)}" target="_blank" rel="noopener" title="Buka situs customer" aria-label="Buka situs customer">${SVG.ext}</a><a class="icon-btn" href="#keluar" title="Keluar" aria-label="Keluar">${SVG.out}</a></div></header>
+      <div class="a-icons">${A.platform ? `<select class="input tenant-pil" id="pil-tenant" aria-label="Tenant aktif">${A.tenants.map(t => `<option value="${t.id}" ${t.id === A.tenant.id ? 'selected' : ''}>${esc(t.nama)}${t.aktif ? '' : ' (nonaktif)'}</option>`).join('')}</select>` : ''}<a class="icon-btn" href="index.html?po=${esc(A.tenant.slug)}" target="_blank" rel="noopener" title="Buka situs customer" aria-label="Buka situs customer">${SVG.ext}</a><a class="icon-btn" href="#keluar" title="Keluar" aria-label="Keluar">${SVG.out}</a><span class="avatar m-only" title="${esc(A.namaAkses)}">${esc(ini)}</span></div></header>
     <main class="a-pg"><div class="a-title">${A.view !== 'dashboard' ? `<a class="icon-btn no-print" href="#dashboard" aria-label="Kembali ke dashboard">${SVG.back}</a>` : ''}<div><h1>${esc(judul)}</h1><p>${SUB[A.view] || ''}</p></div>
       <div class="a-actions no-print"><span class="chip-user">${SVG.lock} ${esc(A.namaAkses)}</span><span class="avatar" title="${esc(A.profil.nama || '')}">${esc(ini)}</span></div></div>
       ${sub.length > 1 ? `<nav class="subnav no-print" aria-label="Sub menu">${sub.map(id => `<a href="#${id}" class="${id === A.view ? 'on' : ''}">${label(id)}</a>`).join('')}</nav>` : ''}
@@ -726,5 +734,12 @@ async function vTenant() {
   $$('[data-ubah]').forEach(b => b.onclick = () => form(tl.find(t => t.id === b.dataset.ubah)));
 }
 
+function labelTabel(root = document) {
+  root.querySelectorAll('table.tbl').forEach(t => {
+    const h = [...t.querySelectorAll('thead th')].map(th => th.textContent.trim());
+    t.querySelectorAll('tbody tr').forEach(tr => [...tr.children].forEach((td, i) => { if (!td.hasAttribute('data-label')) td.setAttribute('data-label', td.colSpan > 1 ? '' : (h[i] || '')); }));
+  });
+}
+new MutationObserver(() => labelTabel()).observe(document.getElementById('app'), { childList: true, subtree: true });
 sb.auth.onAuthStateChange((ev) => { if (ev === 'PASSWORD_RECOVERY') { const m = modal('<h3>Atur password baru</h3><div class="field"><label for="np">Password baru</label><input id="np" type="password" class="input" minlength="8"></div><button class="btn btn-primary" id="sp">Simpan</button>'); $('#sp', m).onclick = async () => { const { error } = await sb.auth.updateUser({ password: $('#np', m).value }); error ? err(error) : (closeModal(), toast('Password diperbarui.', 'ok')); }; } });
 mulai();
