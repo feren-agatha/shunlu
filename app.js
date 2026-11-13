@@ -34,7 +34,7 @@ function progress(step) {
   const n = ['Jadwal', 'Kursi', 'Data', 'Bayar', 'E-ticket'];
   return '<div class="progress" aria-label="Langkah pemesanan">' + n.map((x, i) => {
     const c = i + 1 < step ? 'done' : i + 1 === step ? 'on' : '';
-    return (i ? '<i></i>' : '') + `<span class="${c}"><b>${i + 1 < step ? '✓' : i + 1}</b>${x}</span>`;
+    return (i ? '<i></i>' : '') + `<span class="${c}"><b>${i + 1 < step ? '✓' : i + 1}</b><em>${x}</em></span>`;
   }).join('') + '</div>';
 }
 function tampil(html, opt) {
