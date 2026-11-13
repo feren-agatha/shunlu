@@ -8,7 +8,7 @@ create type status_boarding as enum ('belum','naik','no_show');
 create table settings (
   id int primary key default 1 check (id = 1),
   nama_brand text not null default 'Shunlu',
-  nama_perusahaan text not null default 'PT Primajaya Transportasi',
+  nama_perusahaan text not null default 'Shunlu',
   warna_brand text not null default '#0F5C4D',
   logo_url text,
   wa_tiket text, wa_cargo text, instagram text, facebook text,

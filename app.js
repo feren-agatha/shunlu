@@ -26,7 +26,7 @@ function layout(inner, opt = {}) {
     <button class="c-burger" id="burger" aria-label="Buka menu" aria-expanded="false">${IC.menu}</button>
   </div></header>
   <main class="c-main">${inner}</main>
-  <footer class="c-foot"><div class="c-foot-in"><span>Shunlu 顺路 · dioperasikan ${esc(SET.nama_perusahaan)}</span><span>Harga tiket sudah termasuk iuran wajib Jasa Raharja</span></div></footer>
+  <footer class="c-foot"><div class="c-foot-in"><span>Shunlu 顺路 · Tiket bus &amp; cargo</span><span>Harga tiket sudah termasuk iuran wajib Jasa Raharja</span></div></footer>
   ${wa && !opt.noFab ? `<a class="wa-fab no-print" href="https://wa.me/${esc(wa)}?text=${teks}" target="_blank" rel="noopener">${IC.wa}<span class="t">Butuh bantuan? Chat CS</span></a>` : ''}
   ${opt.bottom || ''}`;
 }
