@@ -760,3 +760,15 @@ body{background-attachment:fixed;min-height:100vh}
 .a-title{margin-bottom:6px}
 .a-title>div:first-child{min-width:0}
 .pg-main .phone-ui{margin:0;max-width:460px}
+.g-bar{cursor:pointer;transition:transform .12s}
+.g-bar:hover{transform:translateY(-1px)}
+.g-bar.sel{outline:2px solid var(--ink);outline-offset:2px;z-index:2}
+.sec-h{font-size:18px;font-weight:500;margin:0}
+.det-grid{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start}
+.det-qr{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px;background:#F6F7F9;border-radius:14px}
+.det-qr canvas,.det-qr img{width:140px!important;height:140px!important}
+@container app (max-width: 600px){.det-grid{grid-template-columns:1fr}}
+.tbl tr.click{cursor:pointer}
+.modal:has(.det-grid){max-width:620px}
+.det-grid .kv span:first-child{white-space:nowrap}
+.det-grid .kv b{text-align:right}

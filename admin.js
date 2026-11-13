@@ -181,7 +181,7 @@ async function vDashboard() {
   const A0 = 240, A1 = 1440, pos = m => ((Math.min(Math.max(m, A0), A1) - A0) / (A1 - A0) * 100);
   const armada = [...new Set(hariini.map(j => j.armada.nopol))];
   const gantt = hariini.length ? `<div class="gantt" role="img" aria-label="Jadwal armada hari ini"><div class="g-head"><span>Armada</span><div class="g-scale">${[4, 8, 12, 16, 20, 24].map(h => `<span style="left:${pos(h * 60)}%">${pad(h % 24)}:00</span>`).join('')}</div></div>
-      ${armada.map(nop => `<div class="g-row"><span class="g-lbl">${esc(nop)}</span><div class="g-track">${hariini.filter(j => j.armada.nopol === nop).map(j => `<a class="g-bar ${j.st}" href="#dashboard" data-dep="${j.id}" style="left:${pos(j.s)}%;width:${Math.max(pos(j.e) - pos(j.s), 6)}%" title="${esc(j.rute.asal)} → ${esc(j.rute.tujuan)} ${jam(j.jam)}–${keJam(j.e)}"><span>${esc(j.rute.kode)}</span></a>`).join('')}${now >= A0 ? `<span class="g-now" style="left:${pos(now)}%" data-t="${keJam(now)}"></span>` : ''}</div></div>`).join('')}</div>` : '<p class="muted" style="margin:0">Tidak ada jadwal hari ini.</p>';
+      ${armada.map(nop => `<div class="g-row"><span class="g-lbl">${esc(nop)}</span><div class="g-track">${hariini.filter(j => j.armada.nopol === nop).map(j => `<a class="g-bar ${j.st} ${j.id === A.depSel ? 'sel' : ''}" aria-pressed="${j.id === A.depSel}" href="#dashboard" data-dep="${j.id}" style="left:${pos(j.s)}%;width:${Math.max(pos(j.e) - pos(j.s), 6)}%" title="${esc(j.rute.asal)} → ${esc(j.rute.tujuan)} ${jam(j.jam)}–${keJam(j.e)}"><span>${esc(j.rute.kode)}</span></a>`).join('')}${now >= A0 ? `<span class="g-now" style="left:${pos(now)}%" data-t="${keJam(now)}"></span>` : ''}</div></div>`).join('')}</div>` : '<p class="muted" style="margin:0">Tidak ada jadwal hari ini.</p>';
   const W = 640, H = 200, l = 56, b = 26, t = 14, r = 8, max = Math.max(1, ...seri.map(x => x.nilai)), bw = (W - l - r) / Math.max(1, seri.length), y = v => t + (H - t - b) * (1 - v / max);
   const chart = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Pendapatan tiket 14 hari terakhir">${[0, .5, 1].map(f => `<line x1="${l}" x2="${W - r}" y1="${y(max * f)}" y2="${y(max * f)}" stroke="#EEF0F2"/><text x="${l - 8}" y="${y(max * f) + 4}" text-anchor="end" font-size="11" fill="#8B9099">${(max * f / 1e6).toLocaleString('id-ID', { maximumFractionDigits: 1 })}</text>`).join('')}
     ${seri.map((s, i) => { const x = l + i * bw + 4, last = i === seri.length - 1; return `<rect x="${x}" y="${y(s.nilai)}" width="${bw - 8}" height="${Math.max(0, y(0) - y(s.nilai))}" rx="6" fill="${last ? '#0E0F11' : '#7A2BF0'}" fill-opacity="${last ? 1 : .75}"><title>${tglPendek(s.tanggal)}: ${rp(s.nilai)}</title></rect><text x="${x + (bw - 8) / 2}" y="${H - 8}" text-anchor="middle" font-size="10.5" fill="#8B9099">${new Date(s.tanggal + 'T00:00:00').getDate()}</text>`; }).join('')}<text x="${l}" y="10" font-size="11" fill="#8B9099">Rp juta</text></svg>`;
@@ -189,9 +189,7 @@ async function vDashboard() {
   $('#isi').innerHTML = `<div class="stat-row">${stats}</div>
     <div class="dash-split">
       <div class="stack" style="gap:16px">
-        <section><div class="spread" style="margin-bottom:8px"><h2 style="font-size:18px;font-weight:500">Keberangkatan hari ini</h2><span class="hint">${hariini.length} jadwal · ${tglPanjang(hariIni())}</span></div>
-          <div class="dep-row">${hariini.map(j => `<button class="dep" data-dep="${j.id}" aria-pressed="${j.id === A.depSel}"><span>${esc(j.kode)} · ${jam(j.jam)}</span><b>${esc(j.rute.asal)} → ${esc(j.rute.tujuan)}</b><small>${j.st === 'done' ? 'Selesai' : j.st === 'now' ? 'Dalam perjalanan' : 'Belum berangkat'} · okupansi ${j.okup}%</small></button>`).join('') || '<p class="muted">Tidak ada keberangkatan hari ini.</p>'}</div></section>
-        <section class="card panel"><div class="spread"><h2>Jadwal armada</h2><span class="row" style="gap:12px;font-size:12px;color:var(--ink-3)"><span><i class="lg" style="background:var(--accent)"></i>akan berangkat</span><span><i class="lg" style="background:#D5D7DC"></i>selesai</span><span style="color:var(--bad)">│ sekarang</span></span></div><div class="g-wrap">${gantt}</div></section>
+        <section class="card panel"><div class="spread"><div><h2>Keberangkatan hari ini</h2><span class="hint">${hariini.length} jadwal · ${tglPanjang(hariIni())} · pilih bar untuk melihat detail</span></div><span class="row" style="gap:12px;font-size:12px;color:var(--ink-3)"><span><i class="lg" style="background:var(--accent)"></i>akan berangkat</span><span><i class="lg" style="background:#D5D7DC"></i>selesai</span><span style="color:var(--bad)">│ sekarang</span></span></div><div class="g-wrap">${gantt}</div></section>
       </div>
       <aside class="card panel">${sel ? `<span class="hint">${esc(sel.kode)}</span><h2 style="font-size:20px">${esc(sel.rute.asal)} → ${esc(sel.rute.tujuan)}</h2>
         <div style="background:#F6F7F9;border-radius:14px;padding:12px;display:flex;justify-content:center">${busMini(220)}</div>
@@ -594,33 +592,102 @@ async function renderLayout() {
 }
 
 /* ---------- Laporan ---------- */
+const ST_PESANAN = { lunas: ['Lunas', 'b-lime'], menunggu_verifikasi: ['Menunggu verifikasi', 'b-accent'], menunggu_bayar: ['Menunggu bayar', 'b-neutral'], ditolak: ['Ditolak', 'b-neutral'], kedaluwarsa: ['Kedaluwarsa', 'b-neutral'], batal: ['Batal', 'b-neutral'] };
+const ST_CARGO = { dibuat: 'Dibuat online', diterima_asal: 'Diterima di gudang asal', dalam_perjalanan: 'Dalam perjalanan', tiba_tujuan: 'Tiba di gudang tujuan', siap_diambil: 'Siap diambil', diterima: 'Diterima' };
+const ST_BOARD = { menunggu: 'Belum', naik: 'Sudah naik', no_show: 'No-show' };
+const badgeSt = s => { const x = ST_PESANAN[s] || [s, 'b-neutral']; return `<span class="badge ${x[1]}">${x[0]}</span>`; };
+const SEL_TIKET = 'kursi,kelas,nama_penumpang,harga,aktif,boarding,tanggal,pesanan!inner(kode,status,pemesan_nama,pemesan_hp,pemesan_email,subtotal,potongan,total_transfer,diverifikasi_at,titik_naik,titik_turun,created_at),jadwal(kode,jam,rute(kode,asal,tujuan))';
+const SEL_CARGO = 'resi,status,pengirim_nama,pengirim_hp,penerima_nama,penerima_hp,penerima_alamat,jenis_barang,estimasi_ongkir,ongkir_final,lunas,estimasi_tiba,created_at,zona(kode,asal,tujuan),layanan(nama),koli(count)';
+async function cariSemuaTanggal(jenis, q) {
+  const like = `%${q.replace(/[%,()]/g, '')}%`;
+  if (jenis === 'tiket') {
+    const [a, b] = await Promise.all([
+      sb.from('pesanan_kursi').select(SEL_TIKET).ilike('nama_penumpang', like).order('tanggal', { ascending: false }).limit(200),
+      sb.from('pesanan_kursi').select(SEL_TIKET).or(`kode.ilike.${like},pemesan_nama.ilike.${like},pemesan_hp.ilike.${like},pemesan_email.ilike.${like}`, { referencedTable: 'pesanan' }).order('tanggal', { ascending: false }).limit(200)
+    ]);
+    const m = new Map(); [...(a.data || []), ...(b.data || [])].forEach(r => m.set(r.pesanan.kode + r.kursi + r.tanggal, r)); return [...m.values()];
+  }
+  const { data } = await sb.from('pengiriman').select(SEL_CARGO).or(`resi.ilike.${like},pengirim_nama.ilike.${like},pengirim_hp.ilike.${like},penerima_nama.ilike.${like},penerima_hp.ilike.${like}`).order('created_at', { ascending: false }).limit(200);
+  return data || [];
+}
 async function vLaporan() {
-  A.lap = A.lap || { jenis: !tiketOps() && cargoOps() ? 'cargo' : 'tiket', dari: isoHari(hariIni(), -29), sampai: hariIni() };
+  A.lap = A.lap || { jenis: !tiketOps() && cargoOps() ? 'cargo' : 'tiket', dari: isoHari(hariIni(), -29), sampai: hariIni(), dasar: 'berangkat', q: '', semua: null };
   const L = A.lap;
   shell('Laporan', '<div class="skeleton" style="height:300px"></div>');
-  let rows = [], kpi = [], head = [], csv = [];
-  if (L.jenis === 'tiket') {
-    const { data } = await sb.from('pesanan').select('kode,subtotal,potongan,status,diverifikasi_at,jadwal(kode,rute(kode)),pesanan_kursi(boarding,aktif)').eq('status', 'lunas').gte('diverifikasi_at', L.dari + 'T00:00:00+07:00').lte('diverifikasi_at', L.sampai + 'T23:59:59+07:00');
-    const g = {}; (data || []).forEach(p => { const k = p.jadwal.rute.kode; g[k] = g[k] || { t: 0, r: 0, n: 0, ns: 0 }; const ks = p.pesanan_kursi.filter(x => x.aktif); g[k].t += ks.length; g[k].r += p.subtotal - p.potongan; g[k].n++; g[k].ns += ks.filter(x => x.boarding === 'no_show').length; });
-    head = ['Rute', 'Pesanan', 'Tiket', 'Pendapatan', 'No-show']; rows = Object.entries(g).map(([k, v]) => [k, v.n, v.t, rp(v.r), v.ns]);
-    const tot = Object.values(g).reduce((a, v) => ({ r: a.r + v.r, t: a.t + v.t, ns: a.ns + v.ns }), { r: 0, t: 0, ns: 0 });
-    kpi = [['Pendapatan', rp(tot.r)], ['Tiket lunas', tot.t], ['Pesanan', (data || []).length], ['No-show', tot.ns]];
-    csv = [['kode', 'rute', 'jadwal', 'diverifikasi', 'subtotal', 'potongan']].concat((data || []).map(p => [p.kode, p.jadwal.rute.kode, p.jadwal.kode, p.diverifikasi_at, p.subtotal, p.potongan]));
+  let list = [], kpi = [], head = [], ring = [], csv = [];
+  if (L.semua) list = L.semua;
+  else if (L.jenis === 'tiket') {
+    let q = sb.from('pesanan_kursi').select(SEL_TIKET).eq('aktif', true).neq('pesanan.status', 'kedaluwarsa');
+    q = L.dasar === 'berangkat' ? q.gte('tanggal', L.dari).lte('tanggal', L.sampai) : q.gte('pesanan.diverifikasi_at', L.dari + 'T00:00:00+07:00').lte('pesanan.diverifikasi_at', L.sampai + 'T23:59:59+07:00');
+    const { data, error } = await q.order('tanggal').limit(2000); if (error) throw error; list = data || [];
   } else {
-    const { data } = await sb.from('pengiriman').select('resi,status,estimasi_ongkir,ongkir_final,estimasi_tiba,created_at,zona(kode),layanan(nama)').gte('created_at', L.dari + 'T00:00:00+07:00').lte('created_at', L.sampai + 'T23:59:59+07:00');
-    const g = {}; (data || []).forEach(p => { const k = p.zona.kode + ' · ' + p.layanan.nama; g[k] = g[k] || { n: 0, r: 0, d: 0 }; g[k].n++; g[k].r += p.ongkir_final || 0; g[k].d += p.status === 'diterima' ? 1 : 0; });
-    head = ['Zona · layanan', 'Resi', 'Pendapatan (ongkir final)', 'Diterima']; rows = Object.entries(g).map(([k, v]) => [k, v.n, rp(v.r), v.d]);
+    const { data, error } = await sb.from('pengiriman').select(SEL_CARGO).gte('created_at', L.dari + 'T00:00:00+07:00').lte('created_at', L.sampai + 'T23:59:59+07:00').order('created_at').limit(2000); if (error) throw error; list = data || [];
+  }
+  if (L.jenis === 'tiket') {
+    const lunas = list.filter(r => r.pesanan.status === 'lunas'), g = {}, kode = new Set();
+    lunas.forEach(r => { const k = r.jadwal.rute.kode; g[k] = g[k] || { kode: new Set(), t: 0, r: 0, ns: 0 }; g[k].t++; g[k].ns += r.boarding === 'no_show' ? 1 : 0; if (!g[k].kode.has(r.pesanan.kode)) { g[k].kode.add(r.pesanan.kode); g[k].r += r.pesanan.subtotal - r.pesanan.potongan; } kode.add(r.pesanan.kode); });
+    const tot = Object.values(g).reduce((a, v) => ({ r: a.r + v.r, t: a.t + v.t, ns: a.ns + v.ns }), { r: 0, t: 0, ns: 0 });
+    kpi = [['Pendapatan', rp(tot.r)], ['Tiket lunas', tot.t], ['Pesanan lunas', kode.size], ['No-show', tot.ns]];
+    head = ['Rute', 'Pesanan', 'Tiket', 'Pendapatan', 'No-show']; ring = Object.entries(g).map(([k, v]) => [k, v.kode.size, v.t, rp(v.r), v.ns]);
+    csv = [['kode_booking', 'penumpang', 'kursi', 'kelas', 'tanggal', 'jam', 'rute', 'naik', 'turun', 'pemesan', 'hp', 'email', 'status', 'boarding', 'harga']].concat(list.map(r => [r.pesanan.kode, r.nama_penumpang, r.kursi, r.kelas, r.tanggal, jam(r.jadwal.jam), r.jadwal.rute.kode, r.pesanan.titik_naik, r.pesanan.titik_turun, r.pesanan.pemesan_nama, r.pesanan.pemesan_hp, r.pesanan.pemesan_email, r.pesanan.status, r.boarding, r.harga]));
+  } else {
+    const g = {}; list.forEach(p => { const k = p.zona.kode + ' · ' + p.layanan.nama; g[k] = g[k] || { n: 0, r: 0, d: 0 }; g[k].n++; g[k].r += p.ongkir_final || 0; g[k].d += p.status === 'diterima' ? 1 : 0; });
     const tot = Object.values(g).reduce((a, v) => ({ n: a.n + v.n, r: a.r + v.r, d: a.d + v.d }), { n: 0, r: 0, d: 0 });
     kpi = [['Pendapatan', rp(tot.r)], ['Resi', tot.n], ['Diterima', tot.d], ['Belum diterima', tot.n - tot.d]];
-    csv = [['resi', 'zona', 'layanan', 'status', 'estimasi_ongkir', 'ongkir_final', 'dibuat']].concat((data || []).map(p => [p.resi, p.zona.kode, p.layanan.nama, p.status, p.estimasi_ongkir, p.ongkir_final ?? '', p.created_at]));
+    head = ['Zona · layanan', 'Resi', 'Pendapatan (ongkir final)', 'Diterima']; ring = Object.entries(g).map(([k, v]) => [k, v.n, rp(v.r), v.d]);
+    csv = [['resi', 'pengirim', 'hp_pengirim', 'penerima', 'hp_penerima', 'zona', 'layanan', 'koli', 'status', 'ongkir_final', 'dibuat']].concat(list.map(p => [p.resi, p.pengirim_nama, p.pengirim_hp, p.penerima_nama, p.penerima_hp, p.zona.kode, p.layanan.nama, (p.koli[0] || {}).count || 0, p.status, p.ongkir_final ?? '', p.created_at]));
   }
-  $('#isi').innerHTML = `<div class="a-tabs" role="tablist">${tiketOps() || !cargoOps() ? `<button role="tab" data-j="tiket" aria-selected="${L.jenis === 'tiket'}">Tiket</button>` : ''}${cargoOps() || !tiketOps() ? `<button role="tab" data-j="cargo" aria-selected="${L.jenis === 'cargo'}">Cargo</button>` : ''}</div>
-    <div class="toolbar"><label class="hint" for="d1">Dari</label><input id="d1" type="date" class="input" style="width:auto;height:38px" value="${L.dari}"><label class="hint" for="d2">Sampai</label><input id="d2" type="date" class="input" style="width:auto;height:38px" value="${L.sampai}"><span class="row" style="margin-left:auto"><button class="btn btn-secondary btn-sm" id="dl" ${csv.length > 1 ? '' : 'disabled'}>Unduh CSV (Excel)</button><button class="btn btn-secondary btn-sm" onclick="window.print()">Cetak / PDF</button></span></div>
-    ${csv.length > 1 ? `<div class="rpt-grid">${kpi.map(k => `<div class="card kpi"><span>${k[0]}</span><b class="num">${k[1]}</b><small>${tglPendek(L.dari)} – ${tglPendek(L.sampai)}</small></div>`).join('')}</div>
-    <div class="card tbl-wrap"><table class="tbl"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((c, i) => `<td class="${i ? 'num' : ''}">${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` : kosong('Tidak ada data untuk periode ini.', 'Ubah rentang tanggal. Tombol unduh aktif lagi bila ada data.')}`;
-  $$('[data-j]').forEach(b => b.onclick = () => { L.jenis = b.dataset.j; vLaporan(); });
-  $('#d1').onchange = e => { L.dari = e.target.value; vLaporan(); }; $('#d2').onchange = e => { L.sampai = e.target.value; vLaporan(); };
-  $('#dl').onclick = () => unduh(`laporan-${L.jenis}-${L.dari}-${L.sampai}.csv`, '\ufeff' + csv.map(r => r.map(c => JSON.stringify(c ?? '')).join(',')).join('\n'));
+  const tiket = L.jenis === 'tiket';
+  const baris = tiket
+    ? list.map((r, i) => `<tr data-i="${i}" class="click"><td class="mono"><b>${esc(r.pesanan.kode)}</b></td><td>${esc(r.nama_penumpang)}</td><td class="num">${esc(r.kursi)} <span class="hint">${esc(r.kelas)}</span></td><td class="num">${tglPendek(r.tanggal)} · ${jam(r.jadwal.jam)}</td><td>${esc(r.jadwal.rute.kode)}</td><td>${esc(r.pesanan.pemesan_nama)}<br><span class="hint">${esc(r.pesanan.pemesan_hp)}</span></td><td>${badgeSt(r.pesanan.status)}</td><td>${r.pesanan.status === 'lunas' ? esc(ST_BOARD[r.boarding] || r.boarding || '—') : '—'}</td></tr>`).join('')
+    : list.map((p, i) => `<tr data-i="${i}" class="click"><td class="mono"><b>${esc(p.resi)}</b></td><td>${esc(p.pengirim_nama)}<br><span class="hint">${esc(p.pengirim_hp)}</span></td><td>${esc(p.penerima_nama)}<br><span class="hint">${esc(p.penerima_hp)}</span></td><td>${esc(p.zona.kode)} · ${esc(p.layanan.nama)}</td><td class="num">${(p.koli[0] || {}).count || 0}</td><td class="num">${tglPendek(p.created_at.slice(0, 10))}</td><td>${esc(ST_CARGO[p.status] || p.status)}</td></tr>`).join('');
+  const kolom = tiket ? ['Kode booking', 'Penumpang', 'Kursi', 'Berangkat', 'Rute', 'Pemesan', 'Status', 'Boarding'] : ['Resi', 'Pengirim', 'Penerima', 'Zona · layanan', 'Koli', 'Dibuat', 'Status'];
+  $('#isi').innerHTML = `<div class="a-tabs" role="tablist">${tiketOps() || !cargoOps() ? `<button role="tab" data-j="tiket" aria-selected="${tiket}">Tiket</button>` : ''}${cargoOps() || !tiketOps() ? `<button role="tab" data-j="cargo" aria-selected="${!tiket}">Cargo</button>` : ''}</div>
+    ${L.semua ? `<div class="banner info"><div><b>Hasil pencarian semua tanggal untuk "${esc(L.q)}"</b> · ${list.length} data. Ringkasan di bawah dihitung dari hasil ini.</div><button class="btn btn-secondary btn-sm" id="balik">Kembali ke periode</button></div>`
+      : `<div class="toolbar">${tiket ? `<select id="dsr" class="select" style="width:auto;height:38px" aria-label="Dasar tanggal"><option value="berangkat" ${L.dasar === 'berangkat' ? 'selected' : ''}>Tanggal berangkat</option><option value="bayar" ${L.dasar === 'bayar' ? 'selected' : ''}>Tanggal lunas</option></select>` : '<span class="hint">Tanggal dibuat</span>'}
+        <label class="sr" for="d1">Dari</label><input id="d1" type="date" class="input" style="width:auto;height:38px" value="${L.dari}"><span class="hint">sampai</span><label class="sr" for="d2">Sampai</label><input id="d2" type="date" class="input" style="width:auto;height:38px" value="${L.sampai}">
+        <span class="row" style="margin-left:auto"><button class="btn btn-secondary btn-sm" id="dl" ${list.length ? '' : 'disabled'}>Unduh CSV (Excel)</button><button class="btn btn-secondary btn-sm" onclick="window.print()">Cetak / PDF</button></span></div>`}
+    <div class="rpt-grid">${kpi.map(k => `<div class="card kpi"><span>${k[0]}</span><b class="num">${k[1]}</b><small>${L.semua ? 'hasil pencarian' : tglPendek(L.dari) + ' – ' + tglPendek(L.sampai)}</small></div>`).join('')}</div>
+    ${ring.length ? `<section class="stack" style="gap:10px"><h2 class="sec-h">Ringkasan per ${tiket ? 'rute' : 'zona dan layanan'}</h2><div class="card tbl-wrap"><table class="tbl"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${ring.map(r => `<tr>${r.map((c, i) => `<td class="${i ? 'num' : ''}">${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>` : ''}
+    <section class="stack" style="gap:10px"><div class="spread"><div><h2 class="sec-h">${tiket ? 'Daftar penumpang' : 'Daftar resi'}</h2><span class="hint">${tiket ? 'Cari nama penumpang, kode booking, nama atau nomor HP pemesan untuk mencocokkan tiket yang hilang.' : 'Cari nomor resi, nama, atau nomor HP pengirim dan penerima.'}</span></div></div>
+      <div class="toolbar"><label class="sr" for="lq">Cari</label><input id="lq" class="input" style="max-width:360px" placeholder="${tiket ? 'Nama, kode booking, HP, email' : 'Resi, nama, HP'}" value="${esc(L.q)}"><span class="muted" id="lq-n">${list.length} data</span>${L.semua ? '' : '<button class="btn btn-secondary btn-sm" id="lq-all">Cari di semua tanggal</button>'}</div>
+      ${list.length ? `<div class="card tbl-wrap"><table class="tbl" id="lt"><thead><tr>${kolom.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${baris}</tbody></table></div>` : kosong(L.semua ? 'Tidak ditemukan.' : 'Tidak ada data untuk periode ini.', L.semua ? 'Periksa ejaan atau coba sebagian nama atau nomor.' : 'Ubah rentang tanggal, atau cari di semua tanggal.')}</section>`;
+  const saring = () => { const t = $('#lq').value.trim().toLowerCase(); L.q = $('#lq').value.trim(); let n = 0; $$('#lt tbody tr').forEach(tr => { const ok = !t || tr.textContent.toLowerCase().includes(t); tr.hidden = !ok; n += ok; }); $('#lq-n').textContent = `${n} data`; };
+  $('#lq').oninput = saring; saring();
+  $('#lq').onkeydown = e => { if (e.key === 'Enter' && $('#lq-all')) $('#lq-all').click(); };
+  const all = $('#lq-all'); if (all) all.onclick = async () => { const q = $('#lq').value.trim(); if (q.length < 3) { toast('Ketik minimal 3 huruf atau angka.', 'bad'); return; } L.q = q; L.semua = await cariSemuaTanggal(L.jenis, q); vLaporan(); };
+  const bl = $('#balik'); if (bl) bl.onclick = () => { L.semua = null; L.q = ''; vLaporan(); };
+  $$('[data-j]').forEach(b => b.onclick = () => { L.jenis = b.dataset.j; L.semua = null; L.q = ''; vLaporan(); });
+  if (!L.semua) {
+    $('#d1').onchange = e => { L.dari = e.target.value; vLaporan(); }; $('#d2').onchange = e => { L.sampai = e.target.value; vLaporan(); };
+    const ds = $('#dsr'); if (ds) ds.onchange = e => { L.dasar = e.target.value; vLaporan(); };
+    $('#dl').onclick = () => unduh(`laporan-${L.jenis}-${L.dari}-${L.sampai}.csv`, '﻿' + csv.map(r => r.map(c => JSON.stringify(c ?? '')).join(',')).join('\n'));
+  }
+  $$('#lt tbody tr').forEach(tr => tr.onclick = () => (tiket ? detailTiket : detailResi)(list[+tr.dataset.i]));
+}
+function detailTiket(r) {
+  const p = r.pesanan, wa = (p.pemesan_hp || '').replace(/\D/g, '').replace(/^0/, '62');
+  const m = modal(`<div class="spread"><h3>Tiket ${esc(p.kode)}</h3>${badgeSt(p.status)}</div>
+    <div class="det-grid"><div class="stack" style="gap:8px">
+      <div class="kv"><span>Penumpang</span><b>${esc(r.nama_penumpang)}</b></div><div class="kv"><span>Kursi</span><b>${esc(r.kursi)} · ${esc(r.kelas)}</b></div>
+      <div class="kv"><span>Berangkat</span><b>${tglPanjang(r.tanggal)} · ${jam(r.jadwal.jam)}</b></div><div class="kv"><span>Rute</span><b>${esc(r.jadwal.rute.asal)} → ${esc(r.jadwal.rute.tujuan)}</b></div>
+      <div class="kv"><span>Naik / turun</span><b>${esc(p.titik_naik || '—')} → ${esc(p.titik_turun || '—')}</b></div>
+      <div class="kv"><span>Boarding</span><b>${p.status === 'lunas' ? esc(ST_BOARD[r.boarding] || r.boarding || '—') : '—'}</b></div>
+      <div class="kv"><span>Pemesan</span><b>${esc(p.pemesan_nama)}</b></div><div class="kv"><span>HP / email</span><b>${esc(p.pemesan_hp)} · ${esc(p.pemesan_email)}</b></div></div>
+      ${p.status === 'lunas' ? '<div class="det-qr"><div id="dq"></div><span class="hint">Pindai di menu Manifest & boarding</span></div>' : ''}</div>
+    <p class="hint" style="margin:0">Cocokkan nama dan nomor HP dengan identitas penumpang sebelum menunjukkan kode ini.</p>
+    <div class="row" style="justify-content:flex-end">${wa ? `<a class="btn btn-secondary" target="_blank" rel="noopener" href="https://wa.me/${wa}?text=${encodeURIComponent(`Halo ${p.pemesan_nama}, kode booking ${MEREK.nama} Anda: ${p.kode} (kursi ${r.kursi}, ${tglPanjang(r.tanggal)} ${jam(r.jadwal.jam)}).`)}">Kirim kode lewat WhatsApp</a>` : ''}<button class="btn btn-primary" id="tt">Tutup</button></div>`);
+  if (p.status === 'lunas') renderQR($('#dq', m), p.kode);
+  $('#tt', m).onclick = closeModal;
+}
+function detailResi(p) {
+  const m = modal(`<div class="spread"><h3>Resi ${esc(p.resi)}</h3><span class="badge b-neutral">${esc(ST_CARGO[p.status] || p.status)}</span></div>
+    <div class="stack" style="gap:8px"><div class="kv"><span>Rute</span><b>${esc(p.zona.asal)} → ${esc(p.zona.tujuan)} · ${esc(p.layanan.nama)}</b></div>
+      <div class="kv"><span>Pengirim</span><b>${esc(p.pengirim_nama)} · ${esc(p.pengirim_hp)}</b></div><div class="kv"><span>Penerima</span><b>${esc(p.penerima_nama)} · ${esc(p.penerima_hp)}</b></div>
+      <div class="kv"><span>Alamat penerima</span><b>${esc(p.penerima_alamat || '—')}</b></div><div class="kv"><span>Barang</span><b>${esc(p.jenis_barang || '—')} · ${(p.koli[0] || {}).count || 0} koli</b></div>
+      <div class="kv"><span>Ongkir</span><b>${rp(p.ongkir_final ?? p.estimasi_ongkir)}${p.lunas ? ' · lunas' : ''}</b></div><div class="kv"><span>Estimasi tiba</span><b>${p.estimasi_tiba ? tglPanjang(p.estimasi_tiba) : '—'}</b></div></div>
+    <div class="row" style="justify-content:flex-end"><a class="btn btn-secondary" href="#scan">Ubah status</a><button class="btn btn-primary" id="tt">Tutup</button></div>`);
+  $('#tt', m).onclick = closeModal;
 }
 
 /* ---------- Pengaturan, user, log ---------- */
