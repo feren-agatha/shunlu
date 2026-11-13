@@ -20,7 +20,8 @@ const MENU = [
   { id: 'pengaturan', label: 'Pengaturan umum', izin: ['pengaturan_lihat', 'pengaturan_ubah'] },
   { id: 'konten', label: 'CMS konten', izin: ['konten_lihat', 'konten_ubah'] },
   { id: 'user', label: 'User & hak akses', izin: ['user'] },
-  { id: 'log', label: 'Log aktivitas', izin: ['log'] }
+  { id: 'log', label: 'Log aktivitas', izin: ['log'] },
+  { id: 'tenant', label: 'Tenant (PO)', izin: ['platform'] }
 ];
 const IZIN = [
   ['Umum', [['dashboard', 'Dashboard'], ['laporan', 'Laporan'], ['semua_branch', 'Semua branch (tanpa ini hanya branch yang dipilih per user)']]],
@@ -35,7 +36,7 @@ const tiketOps = () => punya('verifikasi') || punya('rekonsiliasi') || punya('ma
 const cargoOps = () => punya('terima') || punya('scan') || punya('serah');
 const izinUbah = key => key === 'konten' ? 'konten_ubah' : key === 'rekening' ? 'pengaturan_ubah' : 'master_ubah';
 const hanyaLihat = (izin, teks) => punya(izin) ? '' : `<div class="banner info no-print"><div><b>Hanya lihat.</b> ${teks}</div></div>`;
-const boleh = id => { const m = MENU.find(x => x.id === id); return !!(m && m.izin && m.izin.some(punya)); };
+const boleh = id => { if (id === 'tenant') return !!A.platform; const m = MENU.find(x => x.id === id); return !!(m && m.izin && m.izin.some(punya)); };
 
 const kosong = (j, i) => `<div class="card empty"><h3>${j}</h3><p>${i}</p></div>`;
 const err = e => toast(pesanGalat(e), 'bad');
@@ -69,6 +70,9 @@ async function mulai() {
   A.profil = p || { nama: A.user.email };
   const { data: iz } = await sb.rpc('izin_saya');
   A.izin = new Set((iz && iz.izin) || []); A.namaAkses = iz ? iz.nama : ''; A.role = iz ? 'staf' : null;
+  A.platform = !!(iz && iz.platform); A.tenant = (iz && iz.tenant) || { slug: 'nusalaju', nama: 'Nusalaju' };
+  if (iz) { const { data: st } = await sb.from('settings').select('nama_brand,logo_url,warna_brand').maybeSingle(); MEREK.slug = A.tenant.slug; pakaiMerek(st || { nama_brand: A.tenant.nama }); document.title = 'Back Office ' + MEREK.nama; }
+  if (A.platform) { const { data: tl } = await sb.from('tenant').select('id,slug,nama,aktif').order('created_at'); A.tenants = tl || []; }
   if (!iz) {
     $('#app').innerHTML = `<div style="min-height:100vh;padding:16px"><div class="card login"><span style="color:var(--ink-3)">${IC.lock}</span><h1 style="font-size:20px">Akun belum punya akses.</h1><p class="muted" style="margin:0">${esc(A.user.email)} sudah terdaftar. Minta pengelola user memberi hak akses dan branch di menu User & hak akses.</p><button class="btn btn-secondary" id="out">Keluar</button></div></div>`;
     $('#out').onclick = async () => { await sb.auth.signOut(); vLogin(); }; return;
@@ -83,19 +87,19 @@ async function route() {
   A.view = h;
   if (!boleh(h)) { shell('Akses ditolak', `<div class="card denied"><span style="color:var(--ink-3)">${IC.lock}</span><h2 style="font-size:18px">Anda tidak punya akses ke halaman ini.</h2><p class="muted" style="margin:0">Hubungi Superadmin bila butuh akses.</p><a class="btn btn-secondary" href="#dashboard">Kembali ke Dashboard</a></div>`); return; }
   const V = { dashboard: vDashboard, verifikasi: vVerifikasi, rekonsiliasi: vRekon, manifest: vManifest, terima: vTerima, scan: vScan, serah: vSerah,
-    'm-tiket': () => vMaster('tiket'), 'm-cargo': () => vMaster('cargo'), layout: vLayout, laporan: vLaporan, pengaturan: vPengaturan, konten: () => vMasterTunggal('konten', 'CMS konten'), user: vUser, log: vLog };
+    'm-tiket': () => vMaster('tiket'), 'm-cargo': () => vMaster('cargo'), layout: vLayout, laporan: vLaporan, pengaturan: vPengaturan, konten: () => vMasterTunggal('konten', 'CMS konten'), user: vUser, log: vLog, tenant: vTenant };
   try { await V[h](); } catch (e) { console.error(e); shell('Galat', kosong('Halaman gagal dimuat.', esc(pesanGalat(e)))); }
 }
 
 /* ---------- Kerangka & Dashboard ---------- */
-const GRUPNAV = [['Dashboard', ['dashboard']], ['Ticketing', ['verifikasi', 'rekonsiliasi', 'manifest']], ['Cargo', ['terima', 'scan', 'serah']], ['Master', ['m-tiket', 'm-cargo', 'layout']], ['Laporan', ['laporan']], ['Pengaturan', ['pengaturan', 'konten', 'user', 'log']]];
+const GRUPNAV = [['Dashboard', ['dashboard']], ['Ticketing', ['verifikasi', 'rekonsiliasi', 'manifest']], ['Cargo', ['terima', 'scan', 'serah']], ['Master', ['m-tiket', 'm-cargo', 'layout']], ['Laporan', ['laporan']], ['Pengaturan', ['pengaturan', 'konten', 'user', 'log', 'tenant']]];
 const SUB = {
   dashboard: 'Penjualan, keberangkatan armada, dan peringatan hari ini', verifikasi: 'Cocokkan bukti transfer dengan mutasi, lalu setujui atau tolak',
   rekonsiliasi: 'Unggah mutasi rekening untuk mencocokkan pembayaran sekaligus', manifest: 'Daftar penumpang per keberangkatan dan scan boarding',
   terima: 'Timbang ulang barang, terima pembayaran, dan cetak label koli', scan: 'Ubah status koli dengan scan beruntun', serah: 'Foto atau tanda tangan penerima untuk menyelesaikan pengiriman',
   'm-tiket': 'Jadwal, harga, aturan harga, promo, rute, armada, driver, branch, rekening', 'm-cargo': 'Tarif, zona, gudang, layanan, dan asuransi', layout: 'Susunan kursi per tipe armada',
   laporan: 'Rekap tiket dan cargo per periode', pengaturan: 'Identitas, kontak, dan aturan penjualan', konten: 'Promo, berita, FAQ, dan halaman situs',
-  user: 'Tambah user, atur hak akses, dan reset password', log: 'Jejak aksi admin untuk audit'
+  user: 'Tambah user, atur hak akses, dan reset password', log: 'Jejak aksi admin untuk audit', tenant: 'PO bus yang memakai platform, situs, dan domainnya'
 };
 const SVG = {
   back: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>',
@@ -110,11 +114,12 @@ function shell(judul, inner) {
   const sub = g[1].filter(boleh);
   const ini = (A.profil.nama || A.user.email || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
   $('#app').innerHTML = `<div class="adm"><header class="a-head no-print">${logoHtml('admin.html')}<nav class="pillnav" aria-label="Menu back office">${nav}</nav>
-      <div class="a-icons"><a class="icon-btn" href="index.html" target="_blank" rel="noopener" title="Buka situs customer" aria-label="Buka situs customer">${SVG.ext}</a><a class="icon-btn" href="#keluar" title="Keluar" aria-label="Keluar">${SVG.out}</a></div></header>
+      <div class="a-icons">${A.platform ? `<select class="input tenant-pil" id="pil-tenant" aria-label="Tenant aktif">${A.tenants.map(t => `<option value="${t.id}" ${t.id === A.tenant.id ? 'selected' : ''}>${esc(t.nama)}${t.aktif ? '' : ' (nonaktif)'}</option>`).join('')}</select>` : ''}<a class="icon-btn" href="index.html?po=${esc(A.tenant.slug)}" target="_blank" rel="noopener" title="Buka situs customer" aria-label="Buka situs customer">${SVG.ext}</a><a class="icon-btn" href="#keluar" title="Keluar" aria-label="Keluar">${SVG.out}</a></div></header>
     <main class="a-pg"><div class="a-title">${A.view !== 'dashboard' ? `<a class="icon-btn no-print" href="#dashboard" aria-label="Kembali ke dashboard">${SVG.back}</a>` : ''}<div><h1>${esc(judul)}</h1><p>${SUB[A.view] || ''}</p></div>
       <div class="a-actions no-print"><span class="chip-user">${SVG.lock} ${esc(A.namaAkses)}</span><span class="avatar" title="${esc(A.profil.nama || '')}">${esc(ini)}</span></div></div>
       ${sub.length > 1 ? `<nav class="subnav no-print" aria-label="Sub menu">${sub.map(id => `<a href="#${id}" class="${id === A.view ? 'on' : ''}">${label(id)}</a>`).join('')}</nav>` : ''}
       <div id="isi" class="stack" style="gap:20px">${inner}</div></main></div>`;
+  const pt = $('#pil-tenant'); if (pt) pt.onchange = async () => { try { await rpc('pilih_tenant', { p_tenant: pt.value }); location.hash = 'dashboard'; location.reload(); } catch (e) { toast(pesanGalat(e), 'bad'); } };
   if (boleh('verifikasi')) sb.rpc('daftar_verifikasi').then(({ data }) => { const c = $('#cnt-v'); if (c && data && data.length) { c.textContent = data.length; c.hidden = false; } });
 }
 function busMini(w = 92) {
@@ -528,7 +533,7 @@ async function vLaporan() {
 
 /* ---------- Pengaturan, user, log ---------- */
 async function vPengaturan() {
-  const { data: s } = await sb.from('settings').select('*').eq('id', 1).single();
+  const { data: s } = await sb.from('settings').select('*').single();
   const f = (k, l, t = 'text', h = '') => `<div class="field"><label for="g-${k}">${l}</label><input id="g-${k}" class="input ${t === 'number' ? 'num' : ''}" type="${t}" value="${esc(s[k] ?? '')}">${h ? `<span class="hint">${h}</span>` : ''}</div>`;
   shell('Pengaturan umum', hanyaLihat('pengaturan_ubah', 'Hak akses Anda tidak bisa mengubah pengaturan.') + `<div class="dash-grid"><section class="card panel"><h2>Identitas</h2><div class="fgrid">${f('nama_brand', 'Nama aplikasi')}${f('nama_perusahaan', 'Nama perusahaan (rekening, dokumen)')}${f('wa_tiket', 'WhatsApp CS Tiket', 'text', 'Format 62…')}${f('wa_cargo', 'WhatsApp CS Cargo', 'text', 'Format 62…')}${f('instagram', 'Instagram')}${f('facebook', 'Facebook')}</div><a class="btn btn-secondary" href="#m-tiket" onclick="A.mt={tiket:'rekening'}">Kelola rekening</a></section>
     <section class="card panel"><h2>Aturan penjualan tiket</h2>${f('kunci_kursi_menit', 'Kunci kursi saat dipilih (menit)', 'number')}${f('batas_bayar_menit', 'Batas waktu bayar (menit)', 'number')}${f('tutup_jual_jam', 'Tutup penjualan online sebelum berangkat (jam)', 'number')}${f('maks_kursi', 'Maks kursi per pesanan', 'number')}${f('maks_hari_kedepan', 'Pemesanan paling jauh (hari)', 'number')}
@@ -539,7 +544,7 @@ async function vPengaturan() {
     const d = {}; ['nama_brand', 'nama_perusahaan', 'wa_tiket', 'wa_cargo', 'instagram', 'facebook'].forEach(k => d[k] = $('#g-' + k).value.trim() || null);
     ['kunci_kursi_menit', 'batas_bayar_menit', 'tutup_jual_jam', 'maks_kursi', 'maks_hari_kedepan', 'sla_verifikasi_menit'].forEach(k => d[k] = +$('#g-' + k).value);
     d.kode_unik = $('#g-kode_unik').checked; d.updated_at = new Date().toISOString();
-    const { error } = await sb.from('settings').update(d).eq('id', 1);
+    const { error } = await sb.from('settings').update(d).eq('id', s.id);
     error ? toast(error.code === '23514' ? 'Ada nilai di luar batas yang diizinkan.' : error.message, 'bad') : toast('Pengaturan tersimpan. Berlaku untuk pesanan baru.', 'ok');
   };
 }
@@ -681,6 +686,44 @@ async function vLog() {
   const { data: us } = await sb.from('profiles').select('id,nama');
   const nm = id => (us.find(u => u.id === id) || {}).nama || 'Sistem';
   shell('Log aktivitas', `<div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Waktu</th><th>User</th><th>Aksi</th><th>Objek</th><th>Detail</th></tr></thead><tbody>${(data || []).map(l => `<tr><td class="num">${waktu(l.waktu)}</td><td>${esc(nm(l.user_id))}</td><td>${esc(l.aksi)}</td><td class="mono">${esc(l.objek || '')}</td><td class="hint">${esc(l.detail ? JSON.stringify(l.detail) : '')}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">Belum ada aktivitas.</td></tr>'}</tbody></table></div>`);
+}
+
+/* ---------- Tenant (khusus platform admin) ---------- */
+const slugDari = t => t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30);
+async function vTenant() {
+  const { data: tl, error } = await sb.from('tenant').select('*').order('created_at');
+  if (error) { shell('Tenant (PO)', `<div class="card empty"><p>${esc(pesanGalat(error))}</p></div>`); return; }
+  A.tenants = tl || [];
+  const situs = t => `${location.origin}${location.pathname.replace(/admin(\.html)?$/, '')}?po=${t.slug}`;
+  shell('Tenant (PO)', `<div class="spread"><p class="muted" style="margin:0">${tl.length} PO terdaftar. Data tiap PO terpisah; pindah tenant dari pilihan di kanan atas.</p><button class="btn btn-primary" id="tb">Tambah tenant</button></div>
+    <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>PO</th><th>Slug</th><th>Situs customer</th><th>Domain sendiri</th><th>Status</th><th></th></tr></thead><tbody>
+    ${tl.map(t => `<tr><td><b>${esc(t.nama)}</b>${t.id === A.tenant.id ? ' <span class="badge b-lime">sedang dikelola</span>' : ''}</td><td class="mono">${esc(t.slug)}</td>
+      <td><a href="${esc(situs(t))}" target="_blank" rel="noopener">${esc(situs(t).replace(/^https?:\/\//, ''))}</a></td><td>${esc((t.domain || []).join(', ') || '—')}</td>
+      <td>${t.aktif ? '<span class="badge b-accent">Aktif</span>' : '<span class="badge b-neutral">Nonaktif</span>'}</td>
+      <td><div class="row" style="justify-content:flex-end;gap:6px">${t.id !== A.tenant.id ? `<button class="btn btn-secondary btn-sm" data-kelola="${t.id}">Kelola</button>` : ''}<button class="btn btn-text btn-sm" data-ubah="${t.id}">Ubah</button></div></td></tr>`).join('')}
+    </tbody></table></div>`);
+  $$('[data-kelola]').forEach(b => b.onclick = async () => { try { await rpc('pilih_tenant', { p_tenant: b.dataset.kelola }); location.hash = 'dashboard'; location.reload(); } catch (e) { toast(pesanGalat(e), 'bad'); } });
+  const form = t => {
+    const m = modal(`<h3>${t ? 'Ubah tenant' : 'Tambah tenant'}</h3>
+      <div class="field"><label for="tn">Nama PO</label><input id="tn" class="input" value="${esc(t ? t.nama : '')}" placeholder="Contoh: PO Sinar Jaya"></div>
+      <div class="field"><label for="ts">Slug</label><input id="ts" class="input mono" value="${esc(t ? t.slug : '')}" ${t ? 'disabled' : ''} placeholder="sinar-jaya"><span class="hint">Dipakai di alamat situs: ?po=slug. Huruf kecil, angka, tanda minus. Tidak bisa diubah setelah dibuat.</span></div>
+      <div class="field"><label for="td">Domain sendiri (opsional)</label><input id="td" class="input" value="${esc(t ? (t.domain || []).join(', ') : '')}" placeholder="tiket.sinarjaya.co.id"><span class="hint">Pisahkan dengan koma. Domain perlu ditambahkan juga di Vercel.</span></div>
+      ${t ? `<label class="switch"><input type="checkbox" id="ta" ${t.aktif ? 'checked' : ''}> Aktif (situs customer bisa dibuka)</label>` : '<p class="hint" style="margin:0">Tenant baru langsung mendapat pengaturan, hak akses standar, layout kursi, dan layanan cargo dasar. Setelah dibuat, pilih Kelola untuk mengisi master data dan menambah user PO.</p>'}
+      <div class="row" style="justify-content:flex-end"><button class="btn btn-secondary" id="tc">Batal</button><button class="btn btn-primary" id="to">${t ? 'Simpan' : 'Buat tenant'}</button></div>`);
+    if (!t) { $('#tn', m).oninput = e => { if (!$('#ts', m).dataset.ubah) $('#ts', m).value = slugDari(e.target.value); }; $('#ts', m).oninput = e => { e.target.dataset.ubah = 1; }; }
+    $('#tc', m).onclick = closeModal;
+    $('#to', m).onclick = async () => {
+      const nama = $('#tn', m).value.trim(), domain = $('#td', m).value.split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+      if (!nama) { toast('Nama PO wajib diisi.', 'bad'); return; }
+      try {
+        if (t) { const { error } = await sb.from('tenant').update({ nama, domain, aktif: $('#ta', m).checked }).eq('id', t.id); if (error) throw error; }
+        else await rpc('buat_tenant', { p_slug: $('#ts', m).value.trim(), p_nama: nama, p_domain: domain });
+        closeModal(); toast(t ? 'Tenant diperbarui.' : 'Tenant dibuat. Pilih Kelola untuk mulai mengisi datanya.', 'ok'); vTenant();
+      } catch (e) { toast(pesanGalat(e), 'bad'); }
+    };
+  };
+  $('#tb').onclick = () => form(null);
+  $$('[data-ubah]').forEach(b => b.onclick = () => form(tl.find(t => t.id === b.dataset.ubah)));
 }
 
 sb.auth.onAuthStateChange((ev) => { if (ev === 'PASSWORD_RECOVERY') { const m = modal('<h3>Atur password baru</h3><div class="field"><label for="np">Password baru</label><input id="np" type="password" class="input" minlength="8"></div><button class="btn btn-primary" id="sp">Simpan</button>'); $('#sp', m).onclick = async () => { const { error } = await sb.auth.updateUser({ password: $('#np', m).value }); error ? err(error) : (closeModal(), toast('Password diperbarui.', 'ok')); }; } });

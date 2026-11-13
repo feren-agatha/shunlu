@@ -634,3 +634,5 @@ h1,h2{letter-spacing:-.02em}
 .lg{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
 html{background:#ECEEF1}
 body{background-attachment:fixed;min-height:100vh}
+.tenant-pil{height:40px;border-radius:999px;padding:0 14px;max-width:200px;background:#fff;box-shadow:var(--shadow);border:0;font:inherit}
+.logo-img{border-radius:10px;object-fit:cover}
