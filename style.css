@@ -772,3 +772,16 @@ body{background-attachment:fixed;min-height:100vh}
 .modal:has(.det-grid){max-width:620px}
 .det-grid .kv span:first-child{white-space:nowrap}
 .det-grid .kv b{text-align:right}
+th.sortable{cursor:pointer;user-select:none;white-space:nowrap}
+th.sortable:hover{color:var(--ink)}
+th.sortable::after{content:"\2195";margin-left:6px;opacity:.35;font-size:11px}
+th.sortable[aria-sort="ascending"]::after{content:"\2191";opacity:1}
+th.sortable[aria-sort="descending"]::after{content:"\2193";opacity:1}
+th.sortable[aria-sort="ascending"],th.sortable[aria-sort="descending"]{color:var(--ink)}
+.dash-eq{align-items:stretch}
+.dash-eq>aside{position:static}
+.dash-eq>.stack{display:flex;flex-direction:column}
+.dash-eq>.stack>section{flex:1;display:flex;flex-direction:column}
+.dash-eq .g-wrap{flex:1;display:flex}
+.dash-eq .gantt{flex:1;display:flex;flex-direction:column}
+.dash-eq .g-row{flex:1}

@@ -187,7 +187,7 @@ async function vDashboard() {
     ${seri.map((s, i) => { const x = l + i * bw + 4, last = i === seri.length - 1; return `<rect x="${x}" y="${y(s.nilai)}" width="${bw - 8}" height="${Math.max(0, y(0) - y(s.nilai))}" rx="6" fill="${last ? '#0E0F11' : '#7A2BF0'}" fill-opacity="${last ? 1 : .75}"><title>${tglPendek(s.tanggal)}: ${rp(s.nilai)}</title></rect><text x="${x + (bw - 8) / 2}" y="${H - 8}" text-anchor="middle" font-size="10.5" fill="#8B9099">${new Date(s.tanggal + 'T00:00:00').getDate()}</text>`; }).join('')}<text x="${l}" y="10" font-size="11" fill="#8B9099">Rp juta</text></svg>`;
   const per = d.peringatan || [];
   $('#isi').innerHTML = `<div class="stat-row">${stats}</div>
-    <div class="dash-split">
+    <div class="dash-split dash-eq">
       <div class="stack" style="gap:16px">
         <section class="card panel"><div class="spread"><div><h2>Keberangkatan hari ini</h2><span class="hint">${hariini.length} jadwal · ${tglPanjang(hariIni())} · pilih bar untuk melihat detail</span></div><span class="row" style="gap:12px;font-size:12px;color:var(--ink-3)"><span><i class="lg" style="background:var(--accent)"></i>akan berangkat</span><span><i class="lg" style="background:#D5D7DC"></i>selesai</span><span style="color:var(--bad)">│ sekarang</span></span></div><div class="g-wrap">${gantt}</div></section>
       </div>
@@ -639,8 +639,8 @@ async function vLaporan() {
   }
   const tiket = L.jenis === 'tiket';
   const baris = tiket
-    ? list.map((r, i) => `<tr data-i="${i}" class="click"><td class="mono"><b>${esc(r.pesanan.kode)}</b></td><td>${esc(r.nama_penumpang)}</td><td class="num">${esc(r.kursi)} <span class="hint">${esc(r.kelas)}</span></td><td class="num">${tglPendek(r.tanggal)} · ${jam(r.jadwal.jam)}</td><td>${esc(r.jadwal.rute.kode)}</td><td>${esc(r.pesanan.pemesan_nama)}<br><span class="hint">${esc(r.pesanan.pemesan_hp)}</span></td><td>${badgeSt(r.pesanan.status)}</td><td>${r.pesanan.status === 'lunas' ? esc(ST_BOARD[r.boarding] || r.boarding || '—') : '—'}</td></tr>`).join('')
-    : list.map((p, i) => `<tr data-i="${i}" class="click"><td class="mono"><b>${esc(p.resi)}</b></td><td>${esc(p.pengirim_nama)}<br><span class="hint">${esc(p.pengirim_hp)}</span></td><td>${esc(p.penerima_nama)}<br><span class="hint">${esc(p.penerima_hp)}</span></td><td>${esc(p.zona.kode)} · ${esc(p.layanan.nama)}</td><td class="num">${(p.koli[0] || {}).count || 0}</td><td class="num">${tglPendek(p.created_at.slice(0, 10))}</td><td>${esc(ST_CARGO[p.status] || p.status)}</td></tr>`).join('');
+    ? list.map((r, i) => `<tr data-i="${i}" class="click"><td class="mono"><b>${esc(r.pesanan.kode)}</b></td><td>${esc(r.nama_penumpang)}</td><td class="num">${esc(r.kursi)} <span class="hint">${esc(r.kelas)}</span></td><td class="num" data-sort="${r.tanggal} ${r.jadwal.jam}">${tglPendek(r.tanggal)} · ${jam(r.jadwal.jam)}</td><td>${esc(r.jadwal.rute.kode)}</td><td>${esc(r.pesanan.pemesan_nama)}<br><span class="hint">${esc(r.pesanan.pemesan_hp)}</span></td><td>${badgeSt(r.pesanan.status)}</td><td>${r.pesanan.status === 'lunas' ? esc(ST_BOARD[r.boarding] || r.boarding || '—') : '—'}</td></tr>`).join('')
+    : list.map((p, i) => `<tr data-i="${i}" class="click"><td class="mono"><b>${esc(p.resi)}</b></td><td>${esc(p.pengirim_nama)}<br><span class="hint">${esc(p.pengirim_hp)}</span></td><td>${esc(p.penerima_nama)}<br><span class="hint">${esc(p.penerima_hp)}</span></td><td>${esc(p.zona.kode)} · ${esc(p.layanan.nama)}</td><td class="num">${(p.koli[0] || {}).count || 0}</td><td class="num" data-sort="${p.created_at}">${tglPendek(p.created_at.slice(0, 10))}</td><td>${esc(ST_CARGO[p.status] || p.status)}</td></tr>`).join('');
   const kolom = tiket ? ['Kode booking', 'Penumpang', 'Kursi', 'Berangkat', 'Rute', 'Pemesan', 'Status', 'Boarding'] : ['Resi', 'Pengirim', 'Penerima', 'Zona · layanan', 'Koli', 'Dibuat', 'Status'];
   $('#isi').innerHTML = `<div class="a-tabs" role="tablist">${tiketOps() || !cargoOps() ? `<button role="tab" data-j="tiket" aria-selected="${tiket}">Tiket</button>` : ''}${cargoOps() || !tiketOps() ? `<button role="tab" data-j="cargo" aria-selected="${!tiket}">Cargo</button>` : ''}</div>
     ${L.semua ? `<div class="banner info"><div><b>Hasil pencarian semua tanggal untuk "${esc(L.q)}"</b> · ${list.length} data. Ringkasan di bawah dihitung dari hasil ini.</div><button class="btn btn-secondary btn-sm" id="balik">Kembali ke periode</button></div>`
@@ -732,14 +732,15 @@ async function vUser(tab) {
   A.uTab = tab || A.uTab || 'user';
   shell('User & hak akses', '<div class="skeleton" style="height:300px"></div>');
   const [{ data: us }, { data: br }, { data: ha }] = await Promise.all([
-    sb.from('profiles').select('*').order('created_at'),
+    sb.from('profiles').select('*').eq('tenant_id', A.tenant.id).eq('platform_admin', false).order('created_at'),
     sb.from('branch').select('id,nama,kota').order('nama'),
     sb.from('hak_akses').select('*').order('sistem', { ascending: false }).order('nama')
   ]);
   const hak = id => ha.find(h => h.id === id);
+  const infoTenant = `<div class="banner info"><div><b>PO ${esc(A.tenant.nama)}.</b> User dan hak akses di halaman ini hanya berlaku untuk PO ini. User baru otomatis masuk ke ${esc(A.tenant.nama)} dan tidak bisa melihat data PO lain.${A.platform ? ' Untuk mengatur PO lain, ganti PO di kanan atas.' : ''}</div></div>`;
   const tabs = `<div class="a-tabs" role="tablist"><button role="tab" data-ut="user" aria-selected="${A.uTab === 'user'}">User (${us.length})</button><button role="tab" data-ut="hak" aria-selected="${A.uTab === 'hak'}">Hak akses (${ha.length})</button></div>`;
   if (A.uTab === 'user') {
-    $('#isi').innerHTML = tabs + `<div class="toolbar"><label class="sr" for="q">Cari user</label><input id="q" class="input" placeholder="Cari nama atau email"><span class="row" style="margin-left:auto"><button class="btn btn-primary btn-sm" id="add">+ Tambah user</button></span></div>
+    $('#isi').innerHTML = infoTenant + tabs + `<div class="toolbar"><label class="sr" for="q">Cari user</label><input id="q" class="input" placeholder="Cari nama atau email"><span class="row" style="margin-left:auto"><button class="btn btn-primary btn-sm" id="add">+ Tambah user</button></span></div>
       <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>User</th><th>Hak akses</th><th>Branch</th><th>Aktif</th><th></th></tr></thead><tbody>
       ${us.map(u => { const diri = u.id === A.user.id, h = hak(u.hak_akses_id), semua = h && h.izin.includes('semua_branch');
         return `<tr data-u="${u.id}"><td><b>${esc(u.nama || '')}</b>${diri ? ' <span class="badge b-info">Anda</span>' : ''}<br><span class="hint">${esc(u.email || '')}</span></td>
@@ -805,7 +806,7 @@ async function vUser(tab) {
   } else {
     const jumlah = id => us.filter(u => u.hak_akses_id === id).length;
     const label = Object.fromEntries(IZIN.flatMap(g => g[1]));
-    $('#isi').innerHTML = tabs + `<div class="toolbar"><span class="muted">Hak akses bawaan tidak bisa diubah. Duplikat untuk membuat versi Anda sendiri.</span><span class="row" style="margin-left:auto"><button class="btn btn-primary btn-sm" id="addh">+ Hak akses baru</button></span></div>
+    $('#isi').innerHTML = infoTenant + tabs + `<div class="toolbar"><span class="muted">Hak akses bawaan tidak bisa diubah. Duplikat untuk membuat versi Anda sendiri.</span><span class="row" style="margin-left:auto"><button class="btn btn-primary btn-sm" id="addh">+ Hak akses baru</button></span></div>
       <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Hak akses</th><th>Izin</th><th>User</th><th></th></tr></thead><tbody>
       ${ha.map(h => `<tr data-h="${h.id}"><td><b>${esc(h.nama)}</b> ${h.sistem ? '<span class="badge b-neutral">Bawaan</span>' : ''}<br><span class="hint">${esc(h.deskripsi || '')}</span></td>
         <td><div class="facs" style="margin:0">${h.izin.map(z => `<span class="badge ${z.endsWith('_ubah') || z === 'user' ? 'b-accent' : 'b-info'}">${esc((label[z] || z).split(' (')[0])}</span>`).join('')}</div></td>
@@ -844,7 +845,7 @@ async function vLog() {
   const { data } = await sb.from('activity_log').select('*').order('waktu', { ascending: false }).limit(200);
   const { data: us } = await sb.from('profiles').select('id,nama');
   const nm = id => (us.find(u => u.id === id) || {}).nama || 'Sistem';
-  shell('Log aktivitas', `<div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Waktu</th><th>User</th><th>Aksi</th><th>Objek</th><th>Detail</th></tr></thead><tbody>${(data || []).map(l => `<tr><td class="num">${waktu(l.waktu)}</td><td>${esc(nm(l.user_id))}</td><td>${esc(l.aksi)}</td><td class="mono">${esc(l.objek || '')}</td><td class="hint">${esc(l.detail ? JSON.stringify(l.detail) : '')}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">Belum ada aktivitas.</td></tr>'}</tbody></table></div>`);
+  shell('Log aktivitas', `<div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Waktu</th><th>User</th><th>Aksi</th><th>Objek</th><th>Detail</th></tr></thead><tbody>${(data || []).map(l => `<tr><td class="num" data-sort="${l.waktu}">${waktu(l.waktu)}</td><td>${esc(nm(l.user_id))}</td><td>${esc(l.aksi)}</td><td class="mono">${esc(l.objek || '')}</td><td class="hint">${esc(l.detail ? JSON.stringify(l.detail) : '')}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">Belum ada aktivitas.</td></tr>'}</tbody></table></div>`);
 }
 
 /* ---------- Tenant (khusus platform admin) ---------- */
@@ -891,6 +892,32 @@ function labelTabel(root = document) {
     t.querySelectorAll('tbody tr').forEach(tr => [...tr.children].forEach((td, i) => { if (!td.hasAttribute('data-label')) td.setAttribute('data-label', td.colSpan > 1 ? '' : (h[i] || '')); }));
   });
 }
-new MutationObserver(() => labelTabel()).observe(document.getElementById('app'), { childList: true, subtree: true });
+const nilaiSort = td => {
+  if (!td) return '';
+  if (td.dataset.sort != null) { const n = Number(td.dataset.sort); return isNaN(n) ? td.dataset.sort.toLowerCase() : n; }
+  const t = td.textContent.trim();
+  if (/^-?(Rp\s?)?[\d.,]+(\s?(%|kg|mnt|km))?$/i.test(t)) return Number(t.replace(/[^\d,-]/g, '').replace(',', '.'));
+  return t.toLowerCase();
+};
+function sortTabel(root = document) {
+  root.querySelectorAll('table.tbl').forEach(t => {
+    if (t.dataset.sortSiap) return; t.dataset.sortSiap = 1;
+    t.querySelectorAll('thead th').forEach((th, i) => {
+      if (!th.textContent.trim()) return;
+      th.classList.add('sortable'); th.tabIndex = 0; th.setAttribute('aria-sort', 'none'); th.title = 'Klik untuk mengurutkan';
+      const go = () => {
+        const tb = t.tBodies[0]; if (!tb) return;
+        const rows = [...tb.rows].filter(r => !r.querySelector('td[colspan]'));
+        const asc = th.getAttribute('aria-sort') !== 'ascending';
+        t.querySelectorAll('thead th').forEach(x => x.hasAttribute('aria-sort') && x.setAttribute('aria-sort', 'none'));
+        th.setAttribute('aria-sort', asc ? 'ascending' : 'descending');
+        rows.sort((a, b) => { const x = nilaiSort(a.cells[i]), y = nilaiSort(b.cells[i]); const r = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'id', { numeric: true }); return asc ? r : -r; });
+        rows.forEach(r => tb.appendChild(r));
+      };
+      th.onclick = go; th.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } };
+    });
+  });
+}
+new MutationObserver(() => { labelTabel(); sortTabel(); }).observe(document.getElementById('app'), { childList: true, subtree: true });
 sb.auth.onAuthStateChange((ev) => { if (ev === 'PASSWORD_RECOVERY') { const m = modal('<h3>Atur password baru</h3><div class="field"><label for="np">Password baru</label><input id="np" type="password" class="input" minlength="8"></div><button class="btn btn-primary" id="sp">Simpan</button>'); $('#sp', m).onclick = async () => { const { error } = await sb.auth.updateUser({ password: $('#np', m).value }); error ? err(error) : (closeModal(), toast('Password diperbarui.', 'ok')); }; } });
 mulai();
