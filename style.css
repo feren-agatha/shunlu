@@ -782,6 +782,3 @@ th.sortable[aria-sort="ascending"],th.sortable[aria-sort="descending"]{color:var
 .dash-eq>aside{position:static}
 .dash-eq>.stack{display:flex;flex-direction:column}
 .dash-eq>.stack>section{flex:1;display:flex;flex-direction:column}
-.dash-eq .g-wrap{flex:1;display:flex}
-.dash-eq .gantt{flex:1;display:flex;flex-direction:column}
-.dash-eq .g-row{flex:1}
